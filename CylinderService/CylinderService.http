@@ -1,0 +1,6 @@
+@CylinderService_HostAddress = http://localhost:5007
+
+GET {{CylinderService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
