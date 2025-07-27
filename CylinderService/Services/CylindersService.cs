@@ -7,18 +7,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CylinderService.Services
 {
-    public class CylinderService : ICylinder
+    public class CylindersService : ICylinder
     {
         private readonly CylinderDbContext _context;
         private readonly IMapper _mapper;
 
-        public CylinderService(CylinderDbContext context, IMapper mapper)
+        public CylindersService(CylinderDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
         
-        public async Task<IEnumerable<CylinderDto>> GetCylindersAsync()
+        public async Task<IEnumerable<CylinderDto>> GetAllCylindersAsync()
         {
             var cylinders = await _context.Cylinders.ToListAsync();
             return _mapper.Map<IEnumerable<CylinderDto>>(cylinders);
