@@ -1,4 +1,5 @@
-﻿using CustomerService.Services.IServices;
+﻿using CustomerService.Models.DTOs;
+using CustomerService.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerService.Controllers
@@ -30,15 +31,18 @@ namespace CustomerService.Controllers
             return Ok(customer);
         }
         [HttpPost]
-        public async Task<IActionResult> AddCustomer([FromBody] CustomerDto customerDto)
+        public async Task<IActionResult> AddCustomer(CustomerDto customerDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
             var createdCustomer = await _customerService.AddCustomerAsync(customerDto);
-            return CreatedAtAction(nameof(GetCustomerById), new { customerId = createdCustomer.Id }, createdCustomer);
+
+            if (createdCustomer == null)
+            {
+                return BadRequest("Failed to create customer.");
+            }
+
+            return CreatedAtAction(nameof(GetCustomerById), new { id = createdCustomer.Id }, createdCustomer);
         }
+
         [HttpPut("{customerId}")]
         public async Task<IActionResult> UpdateCustomer(Guid customerId, [FromBody] CustomerDto customerDto)
         {
@@ -65,3 +69,4 @@ namespace CustomerService.Controllers
 
         }
 }
+    }
