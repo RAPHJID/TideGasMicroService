@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerService", "CustomerService\CustomerService.csproj", "{275405DB-826E-468D-911C-DEF7210B908C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryService", "InventoryService\InventoryService.csproj", "{8B800D67-F9AE-4CDD-BB25-0A505DEB8C16}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{275405DB-826E-468D-911C-DEF7210B908C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{275405DB-826E-468D-911C-DEF7210B908C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{275405DB-826E-468D-911C-DEF7210B908C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B800D67-F9AE-4CDD-BB25-0A505DEB8C16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B800D67-F9AE-4CDD-BB25-0A505DEB8C16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B800D67-F9AE-4CDD-BB25-0A505DEB8C16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B800D67-F9AE-4CDD-BB25-0A505DEB8C16}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
