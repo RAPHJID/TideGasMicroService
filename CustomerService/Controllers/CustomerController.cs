@@ -33,13 +33,20 @@ namespace CustomerService.Controllers
         [HttpPost]
         public async Task<IActionResult> AddCustomer(CustomerDto customerDto)
         {
-            var createdCustomer = await _customerService.AddCustomerAsync(customerDto);
+            //var createdCustomer = await _customerService.AddCustomerAsync(customerDto);
 
-            if (createdCustomer == null)
+            //if (createdCustomer == null)
+            //{
+            //    return BadRequest("Failed to create customer.");
+            //}
+
+            //return CreatedAtAction(nameof(GetCustomerById), new { id = createdCustomer.Id }, createdCustomer);
+
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Failed to create customer.");
+                return BadRequest(ModelState);
             }
-
+            var createdCustomer = await _customerService.AddCustomerAsync(customerDto);
             return CreatedAtAction(nameof(GetCustomerById), new { id = createdCustomer.Id }, createdCustomer);
         }
 
