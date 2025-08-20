@@ -24,11 +24,11 @@ namespace CustomerService.Migrations
 
             modelBuilder.Entity("CustomerService.Models.Customer", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("Id")
+                        .HasDefaultValueSql("NEWID()");
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -51,7 +51,7 @@ namespace CustomerService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customer", "dbo");
                 });
 #pragma warning restore 612, 618
         }

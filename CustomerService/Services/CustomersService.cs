@@ -9,47 +9,57 @@ namespace CustomerService.Services
 {
     public class CustomersService : ICustomer
     {
-        private readonly AppDbContext _context;
+        private readonly AppDbContext _db;
         private readonly IMapper _mapper;
 
-        public CustomersService(AppDbContext context, IMapper mapper)
+        public CustomersService(AppDbContext db, IMapper mapper)
         {
-            _context = context;
+            _db = db;
             _mapper = mapper;
         }
 
         public async Task<IEnumerable<CustomerDto>> GetAllCustomersAsync()
         {
-            var customers = await _context.Customers.ToListAsync();
+            var customers = await _db.Customers.AsNoTracking().ToListAsync();
             return _mapper.Map<IEnumerable<CustomerDto>>(customers);
         }
+
         public async Task<CustomerDto?> GetCustomerByIdAsync(Guid customerId)
         {
-            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == customerId);
-            if (customer == null) return null;
-            return _mapper.Map<CustomerDto>(customer);
+            var customer = await _db.Customers.AsNoTracking()
+                                              .FirstOrDefaultAsync(c => c.Id == customerId);
+            return customer is null ? null : _mapper.Map<CustomerDto>(customer);
         }
-        public async Task<CustomerDto> AddCustomerAsync(CustomerDto customerDto)
+
+        public async Task<CustomerDto?> AddCustomerAsync(AddCustomerDto dto)
         {
-            var customer = _mapper.Map<Customer>(customerDto);
-            await _context.Customers.AddAsync(customer);
-            await _context.SaveChangesAsync();
-            return _mapper.Map<CustomerDto>(customer);
+            var entity = _mapper.Map<Customer>(dto);
+
+            await _db.Customers.AddAsync(entity);
+            await _db.SaveChangesAsync();
+
+      
+            return _mapper.Map<CustomerDto>(entity);
         }
-        public async Task<CustomerDto> UpdateCustomerAsync(Guid customerId, CustomerDto customerDto)
+
+        public async Task<CustomerDto?> UpdateCustomerAsync(Guid customerId, UpdateCustomerDto dto)
         {
-            var customer = await _context.Customers.FindAsync(customerId);
-            if (customer == null) return null;
-            _mapper.Map(customerDto, customer);
-            await _context.SaveChangesAsync();
-            return _mapper.Map<CustomerDto>(customer);
+            var entity = await _db.Customers.FirstOrDefaultAsync(c => c.Id == customerId);
+            if (entity is null) return null;
+
+            _mapper.Map(dto, entity); 
+            await _db.SaveChangesAsync();
+
+            return _mapper.Map<CustomerDto>(entity);
         }
+
         public async Task<bool> DeleteCustomerAsync(Guid customerId)
         {
-            var customer = await _context.Customers.FindAsync(customerId);
-            if (customer == null) return false;
-            _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync();
+            var entity = await _db.Customers.FirstOrDefaultAsync(c => c.Id == customerId);
+            if (entity is null) return false;
+
+            _db.Customers.Remove(entity);
+            await _db.SaveChangesAsync();
             return true;
         }
     }

@@ -9,6 +9,20 @@ namespace CustomerService.Data
             : base(options)
         {
         }
+
         public DbSet<Customer> Customers { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+
+            modelBuilder.Entity<Customer>(b =>
+            {
+                b.ToTable("Customer", "dbo");   
+                b.HasKey(x => x.Id);
+                b.Property(x => x.Id)
+                 .HasColumnType("uniqueidentifier")
+                 .HasDefaultValueSql("NEWID()");
+            });
+        }
     }
 }

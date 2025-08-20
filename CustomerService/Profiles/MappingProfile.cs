@@ -9,8 +9,9 @@ namespace CustomerService.Profiles
 
         public MappingProfile()
         {
-            // For creating, updating customer & also returning customer data
-            CreateMap<CustomerDto, Customer>().ReverseMap();
+            CreateMap<AddCustomerDto, Customer>();
+            CreateMap<UpdateCustomerDto, Customer>();
+            CreateMap<Customer, CustomerDto>();
         }
     }
 }

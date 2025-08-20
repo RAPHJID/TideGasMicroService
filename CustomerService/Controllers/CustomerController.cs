@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerService.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class CustomerController : ControllerBase
     {
         private readonly ICustomer _customerService;
@@ -13,67 +15,57 @@ namespace CustomerService.Controllers
             _customerService = customerService;
         }
 
-        [HttpGet("all")]
+        // GET: api/customer
+        [HttpGet]
         public async Task<IActionResult> GetAllCustomers()
         {
             var customers = await _customerService.GetAllCustomersAsync();
             return Ok(customers);
         }
 
-        [HttpGet("{customerId}")]
+        // GET: api/customer/{customerId}
+        [HttpGet("{customerId}", Name = "GetCustomerById")]
         public async Task<IActionResult> GetCustomerById(Guid customerId)
-        { 
-         var customer = await _customerService.GetCustomerByIdAsync(customerId);
-            if (customer == null)
-            {
-                return NotFound();
-            }
+        {
+            var customer = await _customerService.GetCustomerByIdAsync(customerId);
+            if (customer == null) return NotFound();
             return Ok(customer);
         }
+
+        // POST: api/customer
         [HttpPost]
-        public async Task<IActionResult> AddCustomer(CustomerDto customerDto)
+        public async Task<IActionResult> AddCustomer([FromBody] AddCustomerDto addDto)
         {
-            //var createdCustomer = await _customerService.AddCustomerAsync(customerDto);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            //if (createdCustomer == null)
-            //{
-            //    return BadRequest("Failed to create customer.");
-            //}
+            var createdCustomer = await _customerService.AddCustomerAsync(addDto);
+            if (createdCustomer == null)
+                return BadRequest("Failed to create customer.");
 
-            //return CreatedAtAction(nameof(GetCustomerById), new { id = createdCustomer.Id }, createdCustomer);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var createdCustomer = await _customerService.AddCustomerAsync(customerDto);
-            return CreatedAtAction(nameof(GetCustomerById), new { id = createdCustomer.Id }, createdCustomer);
+            // Return 201 with Location header to GET endpoint
+            return CreatedAtRoute("GetCustomerById", new { customerId = createdCustomer.Id }, createdCustomer);
         }
 
+        // PUT: api/customer/{customerId}
         [HttpPut("{customerId}")]
-        public async Task<IActionResult> UpdateCustomer(Guid customerId, [FromBody] CustomerDto customerDto)
+        public async Task<IActionResult> UpdateCustomer(Guid customerId, [FromBody] UpdateCustomerDto updateDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var updatedCustomer = await _customerService.UpdateCustomerAsync(customerId, customerDto);
-            if (updatedCustomer == null)
-            {
-                return NotFound();
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var updatedCustomer = await _customerService.UpdateCustomerAsync(customerId, updateDto);
+            if (updatedCustomer == null) return NotFound();
+
             return Ok(updatedCustomer);
         }
+
+        // DELETE: api/customer/{customerId}
         [HttpDelete("{customerId}")]
         public async Task<IActionResult> DeleteCustomer(Guid customerId)
         {
-            var isDeleted = await _customerService.DeleteCustomerAsync(customerId);
-            if (!isDeleted)
-            {
-                return NotFound();
-            }
-            return NoContent();
+            var deleted = await _customerService.DeleteCustomerAsync(customerId);
+            if (!deleted) return NotFound();
 
+            return NoContent();
         }
-}
     }
+}

@@ -6,10 +6,8 @@ namespace CustomerService.Services.IServices
     {
         Task<IEnumerable<CustomerDto>> GetAllCustomersAsync();
         Task<CustomerDto?> GetCustomerByIdAsync(Guid customerId);
-
-        Task<CustomerDto> AddCustomerAsync(CustomerDto customerDto);
-        Task<CustomerDto> UpdateCustomerAsync(Guid customerId, CustomerDto customerDto);
-
+        Task<CustomerDto?> AddCustomerAsync(AddCustomerDto dto);
+        Task<CustomerDto?> UpdateCustomerAsync(Guid customerId, UpdateCustomerDto dto);
         Task<bool> DeleteCustomerAsync(Guid customerId);
     }
 }

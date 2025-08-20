@@ -13,6 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ICustomer, CustomersService>();
 
 
+
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
