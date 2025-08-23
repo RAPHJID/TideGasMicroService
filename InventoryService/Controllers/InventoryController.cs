@@ -15,6 +15,10 @@ namespace InventoryService.Controllers
             _inventory = inventory;
         }
 
+        // -------------------
+        // Inventory endpoints
+        // -------------------
+
         [HttpGet("all")]
         public async Task<IActionResult> GetAllInventory()
         {
@@ -22,7 +26,7 @@ namespace InventoryService.Controllers
             return Ok(inventories);
         }
 
-        [HttpGet("{inventoryId}")]
+        [HttpGet("{inventoryId:guid}")]
         public async Task<IActionResult> GetInventoryById(Guid inventoryId)
         {
             var inventory = await _inventory.GetInventoryByIdAsync(inventoryId);
@@ -33,18 +37,22 @@ namespace InventoryService.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddInventory(AddUpdateInventory inventoryDto)
+        public async Task<IActionResult> AddInventory([FromBody] AddUpdateInventory inventoryDto)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var inventory = await _inventory.AddInventoryAsync(inventoryDto);
             if (inventory == null)
                 return BadRequest("Inventory could not be created.");
 
-            return Ok(inventory);
+            return CreatedAtAction(nameof(GetInventoryById), new { inventoryId = inventory.Id }, inventory);
         }
 
-        [HttpPut("{inventoryId}")]
-        public async Task<IActionResult> UpdateInventory(AddUpdateInventory updateInventory, Guid inventoryId)
+        [HttpPut("{inventoryId:guid}")]
+        public async Task<IActionResult> UpdateInventory([FromBody] AddUpdateInventory updateInventory, Guid inventoryId)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             var existing = await _inventory.GetInventoryByIdAsync(inventoryId);
             if (existing == null)
                 return NotFound($"Inventory with ID {inventoryId} not found.");
@@ -53,15 +61,34 @@ namespace InventoryService.Controllers
             return Ok(updated);
         }
 
-        [HttpDelete("{inventoryId}")]
+        [HttpDelete("{inventoryId:guid}")]
         public async Task<IActionResult> DeleteInventory(Guid inventoryId)
         {
             var inventory = await _inventory.GetInventoryByIdAsync(inventoryId);
             if (inventory == null)
                 return NotFound($"Inventory with ID {inventoryId} not found.");
 
-            await _inventory.DeletedInventoryAsync(inventoryId);
-            return Ok($"Inventory with ID {inventoryId} deleted successfully.");
+            var deleted = await _inventory.DeletedInventoryAsync(inventoryId);
+            return deleted ? NoContent() : StatusCode(500, "Failed to delete inventory.");
         }
-    }
-}
+
+        // -------------------
+        // Cylinder proxy endpoints (forward to CylinderService)
+        // -------------------
+
+        [HttpGet("cylinders")]
+        public async Task<IActionResult> GetCylinders()
+        {
+            var list = await _inventory.GetCylindersAsync();
+            return Ok(list);
+        }
+
+        [HttpGet("cylinders/{id:guid}")]
+        public async Task<IActionResult> GetCylinder(Guid id)
+        {
+            var item = await _inventory.GetCylinderByIdAsync(id);
+            return item is null ? NotFound() : Ok(item);
+        }
+
+        [HttpPost("cylinders")]
+        public async
