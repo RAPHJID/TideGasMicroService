@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryService.Services
 {
-    public class InventoryService : InventoryInterface
+    public class InventorysService : InventoryInterface
     {
         private readonly AppDbContext _appDbContext;
         private readonly IMapper _mapper;
 
-        public InventoryService(AppDbContext appDb, IMapper mapper)
+        public InventorysService(AppDbContext appDb, IMapper mapper)
         {
             _appDbContext = appDb;
             _mapper = mapper;

@@ -2,7 +2,7 @@
 using InventoryService.Models;
 using InventoryService.Models.DTOs;
 
-namespace CustomerService.Profiles
+namespace InventoryService.Profiles
 {
     public class MappingProfile : Profile
     {
