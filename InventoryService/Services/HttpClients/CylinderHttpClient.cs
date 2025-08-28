@@ -17,10 +17,20 @@ namespace InventoryService.Services.HttpClients
             _client = client;
         }
 
+        // central helper to read body and throw a custom exception
+        private static async Task HandleNonSuccessAsync(HttpResponseMessage resp)
+        {
+            var body = resp.Content == null ? string.Empty : await resp.Content.ReadAsStringAsync();
+            throw new CylinderApiException(resp.StatusCode, body);
+        }
+
         public async Task<IEnumerable<CylinderDto>> GetAllAsync()
         {
             var resp = await _client.GetAsync("api/Cylinder/all");
-            resp.EnsureSuccessStatusCode();
+
+            if (!resp.IsSuccessStatusCode)
+                await HandleNonSuccessAsync(resp);
+
             return await resp.Content.ReadFromJsonAsync<IEnumerable<CylinderDto>>() ?? Array.Empty<CylinderDto>();
         }
 
@@ -28,14 +38,17 @@ namespace InventoryService.Services.HttpClients
         {
             var resp = await _client.GetAsync($"api/Cylinder/{id}");
             if (resp.StatusCode == HttpStatusCode.NotFound) return null;
-            resp.EnsureSuccessStatusCode();
+            if (!resp.IsSuccessStatusCode)
+                await HandleNonSuccessAsync(resp);
+
             return await resp.Content.ReadFromJsonAsync<CylinderDto>();
         }
 
         public async Task<CylinderDto> CreateAsync(AddUpdateCylinderDto dto)
         {
             var resp = await _client.PostAsJsonAsync("api/Cylinder", dto);
-            resp.EnsureSuccessStatusCode();
+            if (!resp.IsSuccessStatusCode)
+                await HandleNonSuccessAsync(resp);
             return await resp.Content.ReadFromJsonAsync<CylinderDto>();
         }
 
@@ -43,7 +56,8 @@ namespace InventoryService.Services.HttpClients
         {
             var resp = await _client.PutAsJsonAsync($"api/Cylinder/{id}", dto);
             if (resp.StatusCode == HttpStatusCode.NotFound) return null;
-            resp.EnsureSuccessStatusCode();
+            if (!resp.IsSuccessStatusCode)
+                await HandleNonSuccessAsync(resp);
             return await resp.Content.ReadFromJsonAsync<CylinderDto>();
         }
 
@@ -51,7 +65,8 @@ namespace InventoryService.Services.HttpClients
         {
             var resp = await _client.DeleteAsync($"api/Cylinder/{id}");
             if (resp.StatusCode == HttpStatusCode.NotFound) return false;
-            resp.EnsureSuccessStatusCode();
+            if (!resp.IsSuccessStatusCode)
+                await HandleNonSuccessAsync(resp);
             return true;
         }
     }

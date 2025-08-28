@@ -5,6 +5,7 @@ using InventoryService.Models.DTOs;
 using InventoryService.Services.HttpClients;
 using InventoryService.Services.IService;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -16,7 +17,6 @@ namespace InventoryService.Services
         private readonly IMapper _mapper;
         private readonly ICylinderHttpClient _cylClient;
 
-        // Added ICylinderHttpClient injection (keeps AppDbContext and IMapper)
         public InventorysService(AppDbContext appDb, IMapper mapper, ICylinderHttpClient cylClient)
         {
             _appDbContext = appDb;
@@ -24,24 +24,7 @@ namespace InventoryService.Services
             _cylClient = cylClient;
         }
 
-        // ===== INVENTORY METHODS (unchanged) =====
-        public async Task<InventoryDto> AddInventoryAsync(AddUpdateInventory inventoryDto)
-        {
-            var inventory = _mapper.Map<Inventory>(inventoryDto);
-            await _appDbContext.AddAsync(inventory);
-            await _appDbContext.SaveChangesAsync();
-            return _mapper.Map<InventoryDto>(inventory);
-        }
-
-        public async Task<bool> DeletedInventoryAsync(Guid inventoryId)
-        {
-            var inventory = await _appDbContext.Inventorys.FindAsync(inventoryId);
-            if (inventory == null) return false;
-            _appDbContext.Remove(inventory);
-            await _appDbContext.SaveChangesAsync();
-            return true;
-        }
-
+        // ===== INVENTORY METHODS =====
         public async Task<List<InventoryDto>> GetAllInventoriesAsync()
         {
             var inventories = await _appDbContext.Inventorys.ToListAsync();
@@ -51,7 +34,14 @@ namespace InventoryService.Services
         public async Task<InventoryDto> GetInventoryByIdAsync(Guid inventoryId)
         {
             var inventory = await _appDbContext.Inventorys.FirstOrDefaultAsync(i => i.Id == inventoryId);
-            if (inventory == null) return null;
+            return inventory == null ? null : _mapper.Map<InventoryDto>(inventory);
+        }
+
+        public async Task<InventoryDto> AddInventoryAsync(AddUpdateInventory inventoryDto)
+        {
+            var inventory = _mapper.Map<Inventory>(inventoryDto);
+            await _appDbContext.AddAsync(inventory);
+            await _appDbContext.SaveChangesAsync();
             return _mapper.Map<InventoryDto>(inventory);
         }
 
@@ -59,25 +49,27 @@ namespace InventoryService.Services
         {
             var existing = await _appDbContext.Inventorys.FindAsync(inventoryId);
             if (existing == null) return null;
+
             _mapper.Map(updatedInventory, existing);
             await _appDbContext.SaveChangesAsync();
             return _mapper.Map<InventoryDto>(existing);
         }
 
+        public async Task<bool> DeletedInventoryAsync(Guid inventoryId)
+        {
+            var inventory = await _appDbContext.Inventorys.FindAsync(inventoryId);
+            if (inventory == null) return false;
+
+            _appDbContext.Remove(inventory);
+            await _appDbContext.SaveChangesAsync();
+            return true;
+        }
+
         // ===== CYLINDER METHODS (proxy to CylinderService via ICylinderHttpClient) =====
-        public Task<IEnumerable<CylinderDto>> GetCylindersAsync()
-            => _cylClient.GetAllAsync();
-
-        public Task<CylinderDto?> GetCylinderByIdAsync(Guid id)
-            => _cylClient.GetByIdAsync(id);
-
-        public Task<CylinderDto> CreateCylinderAsync(AddUpdateCylinderDto dto)
-            => _cylClient.CreateAsync(dto);
-
-        public Task<CylinderDto?> UpdateCylinderAsync(Guid id, AddUpdateCylinderDto dto)
-            => _cylClient.UpdateAsync(id, dto);
-
-        public Task<bool> DeleteCylinderAsync(Guid id)
-            => _cylClient.DeleteAsync(id);
+        public Task<IEnumerable<CylinderDto>> GetCylindersAsync() => _cylClient.GetAllAsync();
+        public Task<CylinderDto?> GetCylinderByIdAsync(Guid id) => _cylClient.GetByIdAsync(id);
+        public Task<CylinderDto> CreateCylinderAsync(AddUpdateCylinderDto dto) => _cylClient.CreateAsync(dto);
+        public Task<CylinderDto?> UpdateCylinderAsync(Guid id, AddUpdateCylinderDto dto) => _cylClient.UpdateAsync(id, dto);
+        public Task<bool> DeleteCylinderAsync(Guid id) => _cylClient.DeleteAsync(id);
     }
 }

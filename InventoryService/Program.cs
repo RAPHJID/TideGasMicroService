@@ -1,48 +1,52 @@
+using System;
 using System.Net.Http;
 using InventoryService.Data;
 using InventoryService.Profiles;
 using InventoryService.Services;
 using InventoryService.Services.IService;
-using InventoryService.Services.HttpClients; // <— add this namespace (where ICylinderHttpClient & CylinderHttpClient live)
+using InventoryService.Services.HttpClients;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// === DB for InventoryService ===
+// === App DB for InventoryService ===
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// === Inventory domain services ===
+// === Inventory domain service ===
 builder.Services.AddScoped<InventoryInterface, InventorysService>();
 
-// === Call CylinderService via HttpClient (no direct DI of CylindersService here) ===
-// Base URL from config: "CylinderApiBaseUrl": "https://localhost:7037/"
-builder.Services.AddHttpClient("CylinderApi", client =>
+// === Typed HttpClient to call CylinderService (server-to-server) ===
+// The client is typed to ICylinderHttpClient (your wrapper implementation).
+// Base URL read from configuration: "CylinderApiBaseUrl" or "Services:CylinderBaseUrl"
+builder.Services.AddHttpClient<ICylinderHttpClient, CylinderHttpClient>((sp, client) =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["CylinderApiBaseUrl"] ?? "https://localhost:7037/");
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = cfg["CylinderApiBaseUrl"] ?? cfg["Services:CylinderBaseUrl"] ?? "https://localhost:7037/";
+    client.BaseAddress = new Uri(baseUrl);
 })
-// DEV ONLY: accept local self-signed certs. Remove this in prod.
+// DEV ONLY: accept local self-signed certs. Remove or change in production.
 .ConfigurePrimaryHttpMessageHandler(() =>
     new HttpClientHandler
     {
         ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
     });
 
-// Register the wrapper
-builder.Services.AddScoped<ICylinderHttpClient>(sp =>
-{
-    var factory = sp.GetRequiredService<IHttpClientFactory>();
-    var client = factory.CreateClient("CylinderApi");
-    return new CylinderHttpClient(client);
-});
-
-// === MVC & extras ===
+// === MVC & AutoMapper ===
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-// === CORS (browser -> InventoryService only; server-to-server calls ignore CORS) ===
+// === Swagger with custom schema ids to avoid DTO name collisions ===
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    // use full type name for Swagger schema ids to avoid collisions between services
+    c.CustomSchemaIds(type => type.FullName);
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Inventory API", Version = "v1" });
+});
+
+// === CORS ===
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
