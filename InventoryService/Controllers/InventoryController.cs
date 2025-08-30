@@ -77,123 +77,46 @@ namespace InventoryService.Controllers
         // Cylinder proxy endpoints (forward to CylinderService)
         // -------------------
 
+        // GET /api/Inventory/cylinders
         [HttpGet("cylinders")]
         public async Task<IActionResult> GetCylinders()
         {
-            try
-            {
-                var list = await _inventory.GetCylindersAsync();
-                return Ok(list);
-            }
-            catch (CylinderApiException ex)
-            {
-                return StatusCode((int)ex.StatusCode, new
-                {
-                    message = "CylinderService error",
-                    status = (int)ex.StatusCode,
-                    body = ex.ResponseBody
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
-            }
+            var list = await _inventory.GetCylindersAsync();
+            return Ok(list);
         }
 
-        [HttpGet("cylinders/{id:guid}")]
-        public async Task<IActionResult> GetCylinder(Guid id)
-        {
-            try
-            {
-                var item = await _inventory.GetCylinderByIdAsync(id);
-                return item is null ? NotFound() : Ok(item);
-            }
-            catch (CylinderApiException ex)
-            {
-                return StatusCode((int)ex.StatusCode, new
-                {
-                    message = "CylinderService error",
-                    status = (int)ex.StatusCode,
-                    body = ex.ResponseBody
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
-            }
-        }
-
+        // POST /api/Inventory/cylinders
         [HttpPost("cylinders")]
         public async Task<IActionResult> CreateCylinder([FromBody] AddUpdateCylinderDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            try
-            {
-                var created = await _inventory.CreateCylinderAsync(dto);
-                return CreatedAtAction(nameof(GetCylinder), new { id = created.Id }, created);
-            }
-            catch (CylinderApiException ex)
-            {
-                return StatusCode((int)ex.StatusCode, new
-                {
-                    message = "CylinderService error",
-                    status = (int)ex.StatusCode,
-                    body = ex.ResponseBody
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
-            }
+            var created = await _inventory.CreateCylinderAsync(dto);
+            return CreatedAtAction(nameof(GetCylinder), new { id = created.Id }, created);
         }
 
+        // GET /api/Inventory/cylinders/{id}
+        [HttpGet("cylinders/{id:guid}")]
+        public async Task<IActionResult> GetCylinder(Guid id)
+        {
+            var item = await _inventory.GetCylinderByIdAsync(id);
+            return item is null ? NotFound() : Ok(item);
+        }
+
+        // PUT /api/Inventory/cylinders/{id}
         [HttpPut("cylinders/{id:guid}")]
         public async Task<IActionResult> UpdateCylinder(Guid id, [FromBody] AddUpdateCylinderDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            try
-            {
-                var updated = await _inventory.UpdateCylinderAsync(id, dto);
-                return updated is null ? NotFound() : Ok(updated);
-            }
-            catch (CylinderApiException ex)
-            {
-                return StatusCode((int)ex.StatusCode, new
-                {
-                    message = "CylinderService error",
-                    status = (int)ex.StatusCode,
-                    body = ex.ResponseBody
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
-            }
+            var updated = await _inventory.UpdateCylinderAsync(id, dto);
+            return updated is null ? NotFound() : Ok(updated);
         }
 
+        // DELETE /api/Inventory/cylinders/{id}
         [HttpDelete("cylinders/{id:guid}")]
         public async Task<IActionResult> DeleteCylinder(Guid id)
         {
-            try
-            {
-                var ok = await _inventory.DeleteCylinderAsync(id);
-                return ok ? NoContent() : NotFound();
-            }
-            catch (CylinderApiException ex)
-            {
-                return StatusCode((int)ex.StatusCode, new
-                {
-                    message = "CylinderService error",
-                    status = (int)ex.StatusCode,
-                    body = ex.ResponseBody
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
-            }
+            var ok = await _inventory.DeleteCylinderAsync(id);
+            return ok ? NoContent() : NotFound();
         }
+
     }
 }
+

@@ -65,7 +65,7 @@ namespace InventoryService.Services
             return true;
         }
 
-        // ===== CYLINDER METHODS (proxy to CylinderService via ICylinderHttpClient) =====
+        // Cylinder proxy methods
         public Task<IEnumerable<CylinderDto>> GetCylindersAsync() => _cylClient.GetAllAsync();
         public Task<CylinderDto?> GetCylinderByIdAsync(Guid id) => _cylClient.GetByIdAsync(id);
         public Task<CylinderDto> CreateCylinderAsync(AddUpdateCylinderDto dto) => _cylClient.CreateAsync(dto);

@@ -7,14 +7,14 @@ namespace InventoryService.Services.IService
 {
     public interface InventoryInterface
     {
-        // ===== INVENTORY METHODS =====
+        // Inventory methods
         Task<List<InventoryDto>> GetAllInventoriesAsync();
         Task<InventoryDto> GetInventoryByIdAsync(Guid inventoryId);
         Task<InventoryDto> AddInventoryAsync(AddUpdateInventory inventoryDto);
         Task<InventoryDto> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId);
         Task<bool> DeletedInventoryAsync(Guid inventoryId);
 
-        // ===== CYLINDER METHODS (proxy to CylinderService) =====
+        // Cylinder proxy methods
         Task<IEnumerable<CylinderDto>> GetCylindersAsync();
         Task<CylinderDto?> GetCylinderByIdAsync(Guid id);
         Task<CylinderDto> CreateCylinderAsync(AddUpdateCylinderDto dto);

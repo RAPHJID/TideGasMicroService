@@ -21,12 +21,14 @@ builder.Services.AddScoped<InventoryInterface, InventorysService>();
 builder.Services.AddHttpClient<ICylinderHttpClient, CylinderHttpClient>((sp, client) =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
-    var baseUrl = cfg["CylinderApiBaseUrl"] ?? cfg["Services:CylinderBaseUrl"] ?? "https://localhost:7037/";
+    // Prefer config; fall back to CylinderService dev port 7139
+    var baseUrl = cfg["CylinderApiBaseUrl"] ?? cfg["Services:CylinderBaseUrl"] ?? "https://localhost:7139/";
     client.BaseAddress = new Uri(baseUrl);
 })
 .ConfigurePrimaryHttpMessageHandler(() =>
     new HttpClientHandler
     {
+        // DEV ONLY: trust local dev certs
         ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
     });
 
