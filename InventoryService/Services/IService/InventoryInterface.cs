@@ -9,9 +9,9 @@ namespace InventoryService.Services.IService
     {
         // Inventory methods
         Task<List<InventoryDto>> GetAllInventoriesAsync();
-        Task<InventoryDto> GetInventoryByIdAsync(Guid inventoryId);
-        Task<InventoryDto> AddInventoryAsync(AddUpdateInventory inventoryDto);
-        Task<InventoryDto> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId);
+        Task<InventoryDto?> GetInventoryByIdAsync(Guid inventoryId);
+        Task<InventoryDto?> AddInventoryAsync(AddUpdateInventory inventoryDto);
+        Task<InventoryDto?> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId);
         Task<bool> DeletedInventoryAsync(Guid inventoryId);
 
         // Cylinder proxy methods

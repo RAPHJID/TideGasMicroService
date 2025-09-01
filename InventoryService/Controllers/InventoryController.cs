@@ -42,11 +42,10 @@ namespace InventoryService.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var inventory = await _inventory.AddInventoryAsync(inventoryDto);
-            if (inventory == null)
-                return BadRequest("Inventory could not be created.");
+            var created = await _inventory.AddInventoryAsync(inventoryDto);
+            if (created == null) return NotFound(new { message = "Cylinder not found" });
 
-            return CreatedAtAction(nameof(GetInventoryById), new { inventoryId = inventory.Id }, inventory);
+            return CreatedAtAction(nameof(GetInventoryById), new { inventoryId = created.Id }, created);
         }
 
         [HttpPut("{inventoryId:guid}")]
@@ -54,13 +53,12 @@ namespace InventoryService.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var existing = await _inventory.GetInventoryByIdAsync(inventoryId);
-            if (existing == null)
-                return NotFound($"Inventory with ID {inventoryId} not found.");
-
             var updated = await _inventory.UpdateInventoryAsync(updateInventory, inventoryId);
+            if (updated == null) return NotFound(new { message = "Inventory or Cylinder not found" });
+
             return Ok(updated);
         }
+
 
         [HttpDelete("{inventoryId:guid}")]
         public async Task<IActionResult> DeleteInventory(Guid inventoryId)
