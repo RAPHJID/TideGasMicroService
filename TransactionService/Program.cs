@@ -1,12 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using TransactionService.Data;
+using TransactionService.Services;
 using TransactionService.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddScoped<ITransactionService, TransactionService.Services.TransactionService>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<ITransactionService, TransactionsService>();
 
 
 builder.Services.AddControllers();
@@ -15,9 +19,7 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Add DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 
 
