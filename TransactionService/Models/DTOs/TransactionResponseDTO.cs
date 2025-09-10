@@ -3,8 +3,10 @@
     public class TransactionResponseDTO
     {
         public Guid Id { get; set; }
-        public string? CylinderName { get; set; }   
+        public string CustomerName { get; set; } = string.Empty; 
+        public string CylinderName { get; set; } = string.Empty;  
         public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }   // Quantity × Cylinder.Price
         public DateTime TransactionDate { get; set; }
     }
 }

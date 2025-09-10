@@ -1,10 +1,16 @@
-﻿namespace TransactionService.Models
+﻿using System;
+
+namespace TransactionService.Models
 {
     public class Transaction
     {
-        public Guid Id { get; set; }
+        public Guid TransactionId { get; set; }
+
+        public Guid CustomerId { get; set; }
         public Guid CylinderId { get; set; }
+
         public int Quantity { get; set; }
+        
         public DateTime TransactionDate { get; set; }
     }
 }
