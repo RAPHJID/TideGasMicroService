@@ -33,6 +33,16 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "swagger";
     });
 }
+builder.Services.AddHttpClient("CustomerService", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7261/api/Customer"); 
+});
+
+builder.Services.AddHttpClient("CylinderService", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7139/api/Cylinder/all");
+});
+
 
 app.UseHttpsRedirection();
 
