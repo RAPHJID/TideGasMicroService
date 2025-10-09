@@ -13,6 +13,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddAutoMapper(typeof(Program));
 
 
+// Add HttpClient support
+builder.Services.AddHttpClient();
+
+// Register typed clients
+builder.Services.AddHttpClient("CustomerService", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7261/api/Customer/");
+});
+
+builder.Services.AddHttpClient("CylinderService", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7139/api/Cylinder/");
+});
+
+
 builder.Services.AddScoped<ITransactionService, TransactionsService>();
 
 builder.Services.AddControllers();
@@ -33,15 +48,8 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "swagger";
     });
 }
-builder.Services.AddHttpClient("CustomerService", client =>
-{
-    client.BaseAddress = new Uri("https://localhost:7261/api/Customer"); 
-});
 
-builder.Services.AddHttpClient("CylinderService", client =>
-{
-    client.BaseAddress = new Uri("https://localhost:7139/api/Cylinder/all");
-});
+
 
 
 app.UseHttpsRedirection();
