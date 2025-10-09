@@ -12,14 +12,6 @@ namespace TransactionService.Data
     
         public DbSet<Transaction> Transactions { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
 
-            // configure defaults or constraints
-            modelBuilder.Entity<Transaction>()
-                .Property(t => t.TransactionDate)
-                .HasDefaultValueSql("GETUTCDATE()");
-        }
     }
 }

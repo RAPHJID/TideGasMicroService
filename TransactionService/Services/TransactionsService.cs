@@ -3,66 +3,43 @@ using TransactionService.Data;
 using TransactionService.Models;
 using TransactionService.Models.DTOs;
 using TransactionService.Services.IServices;
+using AutoMapper;
 
 namespace TransactionService.Services
 {
     public class TransactionsService : ITransactionService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public TransactionsService(AppDbContext context)
+        public TransactionsService(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<TransactionResponseDTO>> GetAllAsync()
         {
             var transactions = await _context.Transactions.ToListAsync();
-
-            return transactions.Select(t => new TransactionResponseDTO
-            {
-                Id = t.TransactionId,
-                CustomerName = $"Customer-{t.CustomerId}", 
-                CylinderName = $"Cylinder-{t.CylinderId}", 
-                TotalPrice = t.Quantity * 100
-            });
+            return _mapper.Map<IEnumerable<TransactionResponseDTO>>(transactions);
         }
 
         public async Task<TransactionResponseDTO?> GetByIdAsync(Guid id)
         {
             var transaction = await _context.Transactions.FindAsync(id);
-            if (transaction == null) return null;
-
-            return new TransactionResponseDTO
-            {
-                Id = transaction.TransactionId,
-                CustomerName = $"Customer-{transaction.CustomerId}",
-                CylinderName = $"Cylinder-{transaction.CylinderId}",
-                TotalPrice = transaction.Quantity * 100
-            };
+            return transaction == null ? null : _mapper.Map<TransactionResponseDTO>(transaction);
         }
 
         public async Task<TransactionResponseDTO> CreateAsync(CreateUpdateTransactionDTO dto)
         {
-            var transaction = new Transaction
-            {
-                TransactionId = Guid.NewGuid(),
-                CylinderId = dto.CylinderId,
-                CustomerId = dto.CustomerId,
-                Quantity = dto.Quantity,
-                TransactionDate = DateTime.UtcNow
-            };
+            var entity = _mapper.Map<Transaction>(dto);
+            entity.Id = Guid.NewGuid();
+            entity.Date = DateTime.UtcNow;
 
-            _context.Transactions.Add(transaction);
+            _context.Transactions.Add(entity);
             await _context.SaveChangesAsync();
 
-            return new TransactionResponseDTO
-            {
-                Id = transaction.TransactionId,
-                CustomerName = $"Customer-{transaction.CustomerId}",
-                CylinderName = $"Cylinder-{transaction.CylinderId}",
-                TotalPrice = transaction.Quantity * 100
-            };
+            return _mapper.Map<TransactionResponseDTO>(entity);
         }
 
         public async Task<TransactionResponseDTO?> UpdateAsync(Guid id, CreateUpdateTransactionDTO dto)
@@ -70,20 +47,13 @@ namespace TransactionService.Services
             var transaction = await _context.Transactions.FindAsync(id);
             if (transaction == null) return null;
 
-            transaction.CylinderId = dto.CylinderId;
             transaction.CustomerId = dto.CustomerId;
-            transaction.Quantity = dto.Quantity;
-            transaction.TransactionDate = DateTime.UtcNow;
+            transaction.CylinderId = dto.CylinderId;
+            transaction.Amount = dto.Amount;
 
             await _context.SaveChangesAsync();
 
-            return new TransactionResponseDTO
-            {   
-                Id= transaction.TransactionId,
-                CustomerName = $"Customer-{transaction.CustomerId}",
-                CylinderName = $"Cylinder-{transaction.CylinderId}",
-                TotalPrice = transaction.Quantity * 100
-            };
+            return _mapper.Map<TransactionResponseDTO>(transaction);
         }
 
         public async Task<bool> DeleteAsync(Guid id)

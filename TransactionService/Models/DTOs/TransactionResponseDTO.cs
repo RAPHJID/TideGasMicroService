@@ -3,9 +3,9 @@
     public class TransactionResponseDTO
     {
         public Guid Id { get; set; }
-        public string CustomerName { get; set; } = string.Empty; 
-        public string CylinderName { get; set; } = string.Empty;  
-        public decimal TotalPrice { get; set; }   // Quantity × Cylinder.Price
-        public DateTime TransactionDate { get; set; }
+        public Guid CustomerId { get; set; }
+        public Guid CylinderId { get; set; }
+        public DateTime Date { get; set; }
+        public decimal Amount { get; set; }
     }
 }

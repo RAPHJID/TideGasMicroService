@@ -4,52 +4,64 @@ using TransactionService.Services.IServices;
 
 namespace TransactionService.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class TransactionsController : ControllerBase
     {
-        private readonly ITransactionService _transactionService;
+        private readonly ITransactionService _service;
 
-        public TransactionsController(ITransactionService transactionService)
+        public TransactionsController(ITransactionService service)
         {
-            _transactionService = transactionService;
+            _service = service;
         }
 
+        // GET: api/transactions
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _transactionService.GetAllAsync();
-            return Ok(result);
+            var transactions = await _service.GetAllAsync();
+            return Ok(transactions);
         }
 
+        // GET: api/transactions/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var result = await _transactionService.GetByIdAsync(id);
-            if (result == null) return NotFound();
-            return Ok(result);
+            var transaction = await _service.GetByIdAsync(id);
+            if (transaction == null) return NotFound();
+
+            return Ok(transaction);
         }
 
+        // POST: api/transactions
         [HttpPost]
-        public async Task<IActionResult> Create(CreateUpdateTransactionDTO dto)
+        public async Task<IActionResult> Create([FromBody] CreateUpdateTransactionDTO dto)
         {
-            var result = await _transactionService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var created = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
+        // PUT: api/transactions/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, CreateUpdateTransactionDTO dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] CreateUpdateTransactionDTO dto)
         {
-            var result = await _transactionService.UpdateAsync(id, dto);
-            if (result == null) return NotFound();
-            return Ok(result);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var updated = await _service.UpdateAsync(id, dto);
+            if (updated == null) return NotFound();
+
+            return Ok(updated);
         }
 
+        // DELETE: api/transactions/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var success = await _transactionService.DeleteAsync(id);
-            if (!success) return NotFound();
+            var deleted = await _service.DeleteAsync(id);
+            if (!deleted) return NotFound();
+
             return NoContent();
         }
     }

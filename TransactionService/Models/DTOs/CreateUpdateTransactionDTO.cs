@@ -2,8 +2,8 @@
 {
     public class CreateUpdateTransactionDTO
     {
-        public string CustomerName { get; set; }
-        public string CylinderName { get; set; }
-        public decimal TotalPrice { get; set; } // cashier sets this
+        public Guid CustomerId { get; set; }
+        public Guid CylinderId { get; set; }
+        public decimal Amount { get; set; }
     }
 }
