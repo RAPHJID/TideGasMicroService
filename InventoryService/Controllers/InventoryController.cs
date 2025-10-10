@@ -1,120 +1,72 @@
-﻿using InventoryService.Models.DTOs;
-using InventoryService.Services.HttpClients;
-using InventoryService.Services.IService;
+﻿using InventoryService.Models;
+using InventoryService.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
-namespace InventoryService.Controllers
+
+[ApiController]
+[Route("api/[controller]")]
+public class InventoryController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class InventoryController : ControllerBase
+    private readonly InventorysService _inventoryService;
+
+    public InventoryController(InventorysService inventoryService)
     {
-        private readonly InventoryInterface _inventory;
+        _inventoryService = inventoryService;
+    }
 
-        public InventoryController(InventoryInterface inventory)
-        {
-            _inventory = inventory;
-        }
+    // GET: api/Inventory
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var inventories = await _inventoryService.GetAllInventoriesAsync();
+        return Ok(inventories);
+    }
 
-        // -------------------
-        // Inventory endpoints
-        // -------------------
+    // GET: api/Inventory/{id}
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var inventory = await _inventoryService.GetInventoryByIdAsync(id);
+        if (inventory == null)
+            return NotFound();
 
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllInventory()
-        {
-            var inventories = await _inventory.GetAllInventoriesAsync();
-            return Ok(inventories);
-        }
+        return Ok(inventory);
+    }
 
-        [HttpGet("{inventoryId:guid}")]
-        public async Task<IActionResult> GetInventoryById(Guid inventoryId)
-        {
-            var inventory = await _inventory.GetInventoryByIdAsync(inventoryId);
-            if (inventory == null)
-                return NotFound($"Inventory with ID {inventoryId} not found.");
+    // POST: api/Inventory
+    [HttpPost]
+    public async Task<IActionResult> Add([FromBody] AddUpdateInventory dto)
+    {
+        if (dto == null)
+            return BadRequest("Invalid inventory data.");
 
-            return Ok(inventory);
-        }
+        await _inventoryService.AddInventoryAsync(dto);
+        return Ok(new { Message = "Inventory added successfully" });
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> AddInventory([FromBody] AddUpdateInventory inventoryDto)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+    // PATCH: api/Inventory/{id}/increase/{quantity}
+    [HttpPatch("{id}/increase/{quantity}")]
+    public async Task<IActionResult> IncreaseQuantity(Guid id, int quantity)
+    {
+        if (quantity <= 0)
+            return BadRequest("Quantity must be greater than zero.");
 
-            var created = await _inventory.AddInventoryAsync(inventoryDto);
-            if (created == null) return NotFound(new { message = "Cylinder not found" });
-
-            return CreatedAtAction(nameof(GetInventoryById), new { inventoryId = created.Id }, created);
-        }
-
-        [HttpPut("{inventoryId:guid}")]
-        public async Task<IActionResult> UpdateInventory([FromBody] AddUpdateInventory updateInventory, Guid inventoryId)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var updated = await _inventory.UpdateInventoryAsync(updateInventory, inventoryId);
-            if (updated == null) return NotFound(new { message = "Inventory or Cylinder not found" });
-
-            return Ok(updated);
-        }
+        await _inventoryService.IncreaseQuantityAsync(id, quantity);
+        return Ok(new { Message = "Quantity updated successfully" });
+    }
 
 
-        [HttpDelete("{inventoryId:guid}")]
-        public async Task<IActionResult> DeleteInventory(Guid inventoryId)
-        {
-            var inventory = await _inventory.GetInventoryByIdAsync(inventoryId);
-            if (inventory == null)
-                return NotFound($"Inventory with ID {inventoryId} not found.");
+    // DELETE: api/Inventory/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var inventory = await _inventoryService.GetInventoryByIdAsync(id);
+        if (inventory == null)
+            return NotFound();
 
-            var deleted = await _inventory.DeletedInventoryAsync(inventoryId);
-            return deleted ? NoContent() : StatusCode(500, "Failed to delete inventory.");
-        }
-
-        // -------------------
-        // Cylinder proxy endpoints (forward to CylinderService)
-        // -------------------
-
-        // GET /api/Inventory/cylinders
-        [HttpGet("cylinders")]
-        public async Task<IActionResult> GetCylinders()
-        {
-            var list = await _inventory.GetCylindersAsync();
-            return Ok(list);
-        }
-
-        // POST /api/Inventory/cylinders
-        [HttpPost("cylinders")]
-        public async Task<IActionResult> CreateCylinder([FromBody] AddUpdateCylinderDto dto)
-        {
-            var created = await _inventory.CreateCylinderAsync(dto);
-            return CreatedAtAction(nameof(GetCylinder), new { id = created.Id }, created);
-        }
-
-        // GET /api/Inventory/cylinders/{id}
-        [HttpGet("cylinders/{id:guid}")]
-        public async Task<IActionResult> GetCylinder(Guid id)
-        {
-            var item = await _inventory.GetCylinderByIdAsync(id);
-            return item is null ? NotFound() : Ok(item);
-        }
-
-        // PUT /api/Inventory/cylinders/{id}
-        [HttpPut("cylinders/{id:guid}")]
-        public async Task<IActionResult> UpdateCylinder(Guid id, [FromBody] AddUpdateCylinderDto dto)
-        {
-            var updated = await _inventory.UpdateCylinderAsync(id, dto);
-            return updated is null ? NotFound() : Ok(updated);
-        }
-
-        // DELETE /api/Inventory/cylinders/{id}
-        [HttpDelete("cylinders/{id:guid}")]
-        public async Task<IActionResult> DeleteCylinder(Guid id)
-        {
-            var ok = await _inventory.DeleteCylinderAsync(id);
-            return ok ? NoContent() : NotFound();
-        }
-
+        await _inventoryService.DeletedInventoryAsync(id);
+        return Ok(new { Message = "Inventory deleted successfully" });
     }
 }
-
