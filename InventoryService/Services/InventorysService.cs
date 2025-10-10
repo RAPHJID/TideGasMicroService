@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+// Generic service result wrapper
+public record ServiceResult<T>(bool Success, string? Error, T? Data);
+
 public class InventorysService : InventoryInterface
 {
     private readonly AppDbContext _appDbContext;
@@ -44,65 +47,59 @@ public class InventorysService : InventoryInterface
         var dict = distinctIds.Select((id, i) => new { id, cyl = cylinderResults[i] })
                               .ToDictionary(x => x.id, x => x.cyl);
 
-        return inventories.Select(inv => new InventoryDto
+        return inventories.Select(inv =>
         {
-            Id = inv.Id,
-            CylinderName = dict.TryGetValue(inv.CylinderId, out var c) ? BuildCylinderName(c) : "Unknown",
-            QuantityAvailable = inv.QuantityAvailable,
-            LastUpdated = inv.LastUpdated
+            var dto = _mapper.Map<InventoryDto>(inv);
+            dto.CylinderName = dict.TryGetValue(inv.CylinderId, out var c) ? BuildCylinderName(c) : "Unknown";
+            return dto;
         }).ToList();
     }
 
-    public async Task<InventoryDto?> GetInventoryByIdAsync(Guid inventoryId)
+    public async Task<ServiceResult<InventoryDto>> GetInventoryByIdAsync(Guid inventoryId)
     {
         var inv = await _appDbContext.Inventorys.AsNoTracking().FirstOrDefaultAsync(i => i.Id == inventoryId);
-        if (inv == null) return null;
+        if (inv == null)
+            return new(false, "Inventory not found", null);
 
         var cyl = await _cylClient.GetByIdAsync(inv.CylinderId);
-        return new InventoryDto
-        {
-            Id = inv.Id,
-            CylinderName = BuildCylinderName(cyl),
-            QuantityAvailable = inv.QuantityAvailable,
-            LastUpdated = inv.LastUpdated
-        };
+        var dto = _mapper.Map<InventoryDto>(inv);
+        dto.CylinderName = BuildCylinderName(cyl);
+
+        return new(true, null, dto);
     }
 
-    public async Task<InventoryDto?> AddInventoryAsync(AddUpdateInventory inventoryDto)
+    public async Task<ServiceResult<InventoryDto>> AddInventoryAsync(AddUpdateInventory inventoryDto)
     {
         var cyl = await _cylClient.GetByIdAsync(inventoryDto.CylinderId);
-        if (cyl == null) return null;
+        if (cyl == null)
+            return new(false, "Cylinder not found", null);
 
-        var entity = new Inventory
-        {
-            CylinderId = inventoryDto.CylinderId,
-            QuantityAvailable = inventoryDto.QuantityAvailable,
-            LastUpdated = DateTime.UtcNow
-        };
+        var entity = _mapper.Map<Inventory>(inventoryDto);
+        entity.LastUpdated = DateTime.UtcNow;
 
         _appDbContext.Inventorys.Add(entity);
         await _appDbContext.SaveChangesAsync();
 
-        return new InventoryDto
-        {
-            Id = entity.Id,
-            CylinderName = BuildCylinderName(cyl),
-            QuantityAvailable = entity.QuantityAvailable,
-            LastUpdated = entity.LastUpdated
-        };
+        var dto = _mapper.Map<InventoryDto>(entity);
+        dto.CylinderName = BuildCylinderName(cyl);
+
+        return new(true, null, dto);
     }
 
-    public async Task<InventoryDto?> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId)
+    public async Task<ServiceResult<InventoryDto>> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId)
     {
         var existing = await _appDbContext.Inventorys.FindAsync(inventoryId);
-        if (existing == null) return null;
+        if (existing == null)
+            return new(false, "Inventory not found", null);
 
         if (existing.CylinderId != updatedInventory.CylinderId)
         {
             var cylCheck = await _cylClient.GetByIdAsync(updatedInventory.CylinderId);
-            if (cylCheck == null) return null;
+            if (cylCheck == null)
+                return new(false, "New cylinder not found", null);
         }
 
+        // Map update
         existing.CylinderId = updatedInventory.CylinderId;
         existing.QuantityAvailable = updatedInventory.QuantityAvailable;
         existing.LastUpdated = DateTime.UtcNow;
@@ -110,23 +107,22 @@ public class InventorysService : InventoryInterface
         await _appDbContext.SaveChangesAsync();
 
         var cyl = await _cylClient.GetByIdAsync(existing.CylinderId);
-        return new InventoryDto
-        {
-            Id = existing.Id,
-            CylinderName = BuildCylinderName(cyl),
-            QuantityAvailable = existing.QuantityAvailable,
-            LastUpdated = existing.LastUpdated
-        };
+        var dto = _mapper.Map<InventoryDto>(existing);
+        dto.CylinderName = BuildCylinderName(cyl);
+
+        return new(true, null, dto);
     }
 
-    public async Task<bool> DeletedInventoryAsync(Guid inventoryId)
+    public async Task<ServiceResult<bool>> DeletedInventoryAsync(Guid inventoryId)
     {
         var inventory = await _appDbContext.Inventorys.FindAsync(inventoryId);
-        if (inventory == null) return false;
+        if (inventory == null)
+            return new(false, "Inventory not found", false);
 
         _appDbContext.Inventorys.Remove(inventory);
         await _appDbContext.SaveChangesAsync();
-        return true;
+
+        return new(true, null, true);
     }
 
     // ===== CYLINDER PROXY METHODS =====
