@@ -3,22 +3,19 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace InventoryService.Services.IService
+public interface InventoryInterface
 {
-    public interface InventoryInterface
-    {
-        // Inventory methods
-        Task<List<InventoryDto>> GetAllInventoriesAsync();
-        Task<InventoryDto?> GetInventoryByIdAsync(Guid inventoryId);
-        Task<InventoryDto?> AddInventoryAsync(AddUpdateInventory inventoryDto);
-        Task<InventoryDto?> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId);
-        Task<bool> DeletedInventoryAsync(Guid inventoryId);
+    // Inventory methods
+    Task<List<InventoryDto>> GetAllInventoriesAsync();
+    Task<ServiceResult<InventoryDto>> GetInventoryByIdAsync(Guid inventoryId);
+    Task<ServiceResult<InventoryDto>> AddInventoryAsync(AddUpdateInventory inventoryDto);
+    Task<ServiceResult<InventoryDto>> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId);
+    Task<ServiceResult<bool>> DeletedInventoryAsync(Guid inventoryId);
 
-        // Cylinder proxy methods
-        Task<IEnumerable<CylinderDto>> GetCylindersAsync();
-        Task<CylinderDto?> GetCylinderByIdAsync(Guid id);
-        Task<CylinderDto> CreateCylinderAsync(AddUpdateCylinderDto dto);
-        Task<CylinderDto?> UpdateCylinderAsync(Guid id, AddUpdateCylinderDto dto);
-        Task<bool> DeleteCylinderAsync(Guid id);
-    }
+    // Cylinder proxy methods
+    Task<IEnumerable<CylinderDto>> GetCylindersAsync();
+    Task<CylinderDto?> GetCylinderByIdAsync(Guid id);
+    Task<CylinderDto> CreateCylinderAsync(AddUpdateCylinderDto dto);
+    Task<CylinderDto?> UpdateCylinderAsync(Guid id, AddUpdateCylinderDto dto);
+    Task<bool> DeleteCylinderAsync(Guid id);
 }

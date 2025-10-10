@@ -3,7 +3,6 @@ using InventoryService.Data;
 using InventoryService.Models;
 using InventoryService.Models.DTOs;
 using InventoryService.Services.HttpClients;
-using InventoryService.Services.IService;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
