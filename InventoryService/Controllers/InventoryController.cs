@@ -1,5 +1,6 @@
 ﻿using InventoryService.Models;
 using InventoryService.Models.DTOs;
+using InventoryService.Services.IService;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -9,9 +10,9 @@ using System.Threading.Tasks;
 [Route("api/[controller]")]
 public class InventoryController : ControllerBase
 {
-    private readonly InventorysService _inventoryService;
+    private readonly InventoryInterface _inventoryService;
 
-    public InventoryController(InventorysService inventoryService)
+    public InventoryController(InventoryInterface inventoryService)
     {
         _inventoryService = inventoryService;
     }

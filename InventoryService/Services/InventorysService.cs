@@ -3,6 +3,7 @@ using InventoryService.Data;
 using InventoryService.Models;
 using InventoryService.Models.DTOs;
 using InventoryService.Services.HttpClients;
+using InventoryService.Services.IService;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -111,6 +112,20 @@ public class InventorysService : InventoryInterface
 
         return new(true, null, dto);
     }
+
+    public async Task IncreaseQuantityAsync(Guid id, int quantity)
+    {
+        var inventory = await _appDbContext.Inventorys.FindAsync(id);
+        if (inventory == null)
+            throw new Exception("Inventory not found.");
+
+        inventory.QuantityAvailable += quantity;
+        inventory.LastUpdated = DateTime.UtcNow;
+
+        _appDbContext.Inventorys.Update(inventory);
+        await _appDbContext.SaveChangesAsync();
+    }
+
 
     public async Task<ServiceResult<bool>> DeletedInventoryAsync(Guid inventoryId)
     {

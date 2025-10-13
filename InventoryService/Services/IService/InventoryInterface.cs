@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+namespace InventoryService.Services.IService;
+
 public interface InventoryInterface
 {
     // Inventory methods
@@ -10,6 +12,8 @@ public interface InventoryInterface
     Task<ServiceResult<InventoryDto>> GetInventoryByIdAsync(Guid inventoryId);
     Task<ServiceResult<InventoryDto>> AddInventoryAsync(AddUpdateInventory inventoryDto);
     Task<ServiceResult<InventoryDto>> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId);
+    Task IncreaseQuantityAsync(Guid id, int quantity);
+
     Task<ServiceResult<bool>> DeletedInventoryAsync(Guid inventoryId);
 
     // Cylinder proxy methods

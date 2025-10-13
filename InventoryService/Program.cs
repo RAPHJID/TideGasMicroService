@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net.Http;
 using InventoryService.Data;
 using InventoryService.Profiles;
@@ -10,38 +10,50 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// === App DB for InventoryService ===
+// === Database (SQL Server) ===
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// === Inventory domain service ===
+// === Core Inventory Service ===
 builder.Services.AddScoped<InventoryInterface, InventorysService>();
 
-// === Typed HttpClient for CylinderService (server-to-server) ===
+// === HttpClient for Cylinder Service ===
 builder.Services.AddHttpClient<ICylinderHttpClient, CylinderHttpClient>((sp, client) =>
 {
     var cfg = sp.GetRequiredService<IConfiguration>();
-    // Prefer config; fall back to CylinderService dev port 7139
-    var baseUrl = cfg["CylinderApiBaseUrl"] ?? cfg["Services:CylinderBaseUrl"] ?? "https://localhost:7139/";
+
+    // Prefer config from appsettings.json, fallback to localhost dev URL
+    var baseUrl = cfg["CylinderApiBaseUrl"]
+               ?? cfg["Services:CylinderBaseUrl"]
+               ?? "https://localhost:7139/";
+
     client.BaseAddress = new Uri(baseUrl);
 })
 .ConfigurePrimaryHttpMessageHandler(() =>
     new HttpClientHandler
     {
-        // DEV ONLY: trust local dev certs
-        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        // ⚠️ DEV ONLY: Ignore SSL cert validation for localhost
+        ServerCertificateCustomValidationCallback =
+            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
     });
 
-// === MVC & AutoMapper ===
-builder.Services.AddControllers();
+// === AutoMapper ===
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// === Swagger with custom schema IDs to avoid DTO name collisions ===
+// === Controllers ===
+builder.Services.AddControllers();
+
+// === Swagger (avoid DTO naming conflicts) ===
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.CustomSchemaIds(type => type.FullName);
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Inventory API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Inventory API",
+        Version = "v1",
+        Description = "Handles inventory and cylinder management"
+    });
 });
 
 // === CORS ===
@@ -55,13 +67,15 @@ builder.Services.AddCors(options =>
     });
 });
 
+// === Build the App ===
 var app = builder.Build();
 
-// === Pipeline ===
+// === Middleware Pipeline ===
 app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage(); 
     app.UseSwagger();
     app.UseSwaggerUI();
 }
