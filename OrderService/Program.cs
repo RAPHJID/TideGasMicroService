@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OrderService.Data;
 using OrderService.Profiles;
+using OrderService.Services;
+using OrderService.Services.IServices;
 //using OrderService.Profiles;
 //using OrderService.Services;
 
@@ -12,15 +14,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // === Dependency Injection for Services ===
-//builder.Services.AddScoped<IOrderService, OrderServiceImplementation>();
-
-
+builder.Services.AddScoped<IOrdersService, OrdersService>();
 
 
 // === Controllers ===
 builder.Services.AddControllers();
 
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
 
 
 // === Swagger (API Docs) ===
