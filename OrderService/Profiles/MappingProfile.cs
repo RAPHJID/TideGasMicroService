@@ -3,7 +3,7 @@ using OrderService.Models;
 using OrderService.Models.DTOs;
 using OrderService.Models.Enums;
 
-namespace OrdersService.Profiles
+namespace OrderService.Profiles
 {
     public class MappingProfile : Profile
     {

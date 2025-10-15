@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OrderService.Data;
-using OrderService.Profiles;
 using OrderService.Services;
 using OrderService.Services.IServices;
-//using OrderService.Profiles;
-//using OrderService.Services;
+using OrderService.Profiles;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,12 +16,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IOrdersService, OrdersService>();
 
 
-// === Controllers ===
-builder.Services.AddControllers();
-
+//AUTOMAPPER
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-
+// === Controllers ===
+builder.Services.AddControllers();
 
 // === Swagger (API Docs) ===
 builder.Services.AddEndpointsApiExplorer();
