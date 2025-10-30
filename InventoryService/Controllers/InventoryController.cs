@@ -58,6 +58,24 @@ public class InventoryController : ControllerBase
         return Ok(new { Message = "Quantity updated successfully" });
     }
 
+    [HttpPatch("{id}/decrease/{quantity}")]
+    public async Task<IActionResult> DecreaseQuantity(Guid id, int quantity)
+    {
+        if (quantity <= 0)
+            return BadRequest("Quantity must be greater than zero.");
+
+        try
+        {
+            await _inventoryService.DecreaseQuantityAsync(id, quantity);
+            return Ok(new { message = "Quantity decreased successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+
 
     // DELETE: api/Inventory/{id}
     [HttpDelete("{id}")]
