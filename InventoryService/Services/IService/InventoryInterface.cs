@@ -12,6 +12,7 @@ public interface InventoryInterface
     Task<ServiceResult<InventoryDto>> GetInventoryByIdAsync(Guid inventoryId);
     Task<ServiceResult<InventoryDto>> AddInventoryAsync(AddUpdateInventory inventoryDto);
     Task<ServiceResult<InventoryDto>> UpdateInventoryAsync(AddUpdateInventory updatedInventory, Guid inventoryId);
+    Task DecreaseQuantityAsync(Guid id, int quantity);
     Task IncreaseQuantityAsync(Guid id, int quantity);
 
     Task<ServiceResult<bool>> DeletedInventoryAsync(Guid inventoryId);
