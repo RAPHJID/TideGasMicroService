@@ -113,6 +113,20 @@ public class InventorysService : InventoryInterface
         return new(true, null, dto);
     }
 
+    public async Task DecreaseQuantityAsync(Guid id, int quantity)
+    {
+        var item = await _appDbContext.Inventorys.FirstOrDefaultAsync(i => i.CylinderId == id);
+        if (item == null)
+            throw new Exception("Inventory item not found.");
+
+        if (item.QuantityAvailable < quantity)
+            throw new Exception("Not enough stock to decrease.");
+
+        item.QuantityAvailable -= quantity;
+        await _appDbContext.SaveChangesAsync();
+    }
+
+
     public async Task IncreaseQuantityAsync(Guid id, int quantity)
     {
         var inventory = await _appDbContext.Inventorys.FindAsync(id);
