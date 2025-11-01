@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OrderService.Data;
+using OrderService.Profiles;
 using OrderService.Services;
 using OrderService.Services.IServices;
-using OrderService.Profiles;
+using OrdersService.Services.HttpClients;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +40,12 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
+});
+
+// Typed HTTP client for communication with InventoryService
+builder.Services.AddHttpClient<IInventoryApiClient, InventoryApiClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:InventoryAPI"]);
 });
 
 var app = builder.Build();
