@@ -7,6 +7,7 @@ namespace OrdersService.Services.HttpClients
     public interface IInventoryApiClient
     {
         Task<bool> CheckStockAsync(Guid cylinderId, int quantity);
+        Task<bool> DecreaseInventoryAsync(Guid cylinderId, int quantity);
     }
 
     public class InventoryApiClient : IInventoryApiClient
@@ -29,6 +30,12 @@ namespace OrdersService.Services.HttpClients
             var result = await response.Content.ReadFromJsonAsync<bool>();
             return result;
         }
+        public async Task<bool> DecreaseInventoryAsync(Guid cylinderId, int quantity)
+        {
+            var response = await _httpClient.PatchAsync($"api/Inventory/{cylinderId}/decrease/{quantity}", null);
+            return response.IsSuccessStatusCode;
+        }
+
     }
 }
 

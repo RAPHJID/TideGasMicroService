@@ -5,6 +5,7 @@ using OrderService.Models;
 using OrderService.Models.DTOs;
 using OrderService.Models.Enums;
 using OrderService.Services.IServices;
+using OrderService.Services.HttpClients; // 👈 add this for InventoryApiClient
 
 namespace OrderService.Services
 {
@@ -12,12 +13,15 @@ namespace OrderService.Services
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IInventoryApiClient _inventoryClient; // 👈 new field
 
-        public OrdersService(AppDbContext context, IMapper mapper)
+        public OrdersService(AppDbContext context, IMapper mapper, IInventoryApiClient inventoryClient)
         {
             _context = context;
             _mapper = mapper;
+            _inventoryClient = inventoryClient;
         }
+
         public async Task<IEnumerable<OrderReadDTO>> GetAllOrdersAsync()
         {
             var orders = await _context.Orders.ToListAsync();
@@ -32,9 +36,14 @@ namespace OrderService.Services
 
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
+            // Check inventory before creating order
+            bool inStock = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
+            if (!inStock)
+                throw new InvalidOperationException("Insufficient stock for the requested cylinder.");
+
+            // Proceed with normal order creation
             var order = _mapper.Map<Order>(dto);
 
-            // Convert string status to enum (defaults to Pending if invalid)
             if (Enum.TryParse<OrderStatus>(dto.Status, true, out var status))
                 order.Status = status;
             else
