@@ -5,7 +5,7 @@ using OrderService.Models;
 using OrderService.Models.DTOs;
 using OrderService.Models.Enums;
 using OrderService.Services.IServices;
-using OrderService.Services.HttpClients; // 👈 add this for InventoryApiClient
+using OrdersService.Services.HttpClients;
 
 namespace OrderService.Services
 {
@@ -13,7 +13,7 @@ namespace OrderService.Services
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
-        private readonly IInventoryApiClient _inventoryClient; // 👈 new field
+        private readonly IInventoryApiClient _inventoryClient; 
 
         public OrdersService(AppDbContext context, IMapper mapper, IInventoryApiClient inventoryClient)
         {
@@ -36,14 +36,11 @@ namespace OrderService.Services
 
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
-            // Check inventory before creating order
-            bool inStock = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
+            var inStock = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
             if (!inStock)
-                throw new InvalidOperationException("Insufficient stock for the requested cylinder.");
+                throw new Exception("Not enough stock available in InventoryService.");
 
-            // Proceed with normal order creation
             var order = _mapper.Map<Order>(dto);
-
             if (Enum.TryParse<OrderStatus>(dto.Status, true, out var status))
                 order.Status = status;
             else
@@ -54,6 +51,7 @@ namespace OrderService.Services
 
             return _mapper.Map<OrderReadDTO>(order);
         }
+
 
         public async Task<bool> UpdateOrderStatusAsync(Guid id, string newStatus)
         {
