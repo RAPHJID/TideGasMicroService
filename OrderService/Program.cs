@@ -4,7 +4,8 @@ using OrderService.Data;
 using OrderService.Profiles;
 using OrderService.Services;
 using OrderService.Services.IServices;
-using OrdersService.Services.HttpClients;
+using OrderService.Services.HttpClients;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // === Dependency Injection for Services ===
 builder.Services.AddScoped<IOrdersService, OrdersService>();
+
 
 
 //AUTOMAPPER

@@ -5,7 +5,7 @@ using OrderService.Models;
 using OrderService.Models.DTOs;
 using OrderService.Models.Enums;
 using OrderService.Services.IServices;
-using OrdersService.Services.HttpClients;
+using OrderService.Services.HttpClients;
 
 namespace OrderService.Services
 {

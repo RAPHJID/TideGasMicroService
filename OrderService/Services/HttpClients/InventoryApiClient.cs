@@ -2,7 +2,7 @@
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace OrdersService.Services.HttpClients
+namespace OrderService.Services.HttpClients
 {
     public interface IInventoryApiClient
     {
