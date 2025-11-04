@@ -2,7 +2,7 @@
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System;
-using OrderService.Models;
+using OrderService.Models.DTOs;
 
 namespace OrderService.Clients
 {
@@ -15,14 +15,14 @@ namespace OrderService.Clients
             _httpClient = httpClient;
         }
 
-        public async Task<Customer?> GetCustomerByIdAsync(Guid customerId)
+        public async Task<CustomerDto?> GetCustomerByIdAsync(Guid customerId)
         {
             var response = await _httpClient.GetAsync($"/api/customers/{customerId}");
 
             if (!response.IsSuccessStatusCode)
                 return null;
 
-            return await response.Content.ReadFromJsonAsync<Customer>();
+            return await response.Content.ReadFromJsonAsync<CustomerDto>();
         }
     }
 }
