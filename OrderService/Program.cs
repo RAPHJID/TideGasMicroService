@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using OrderService.Clients;
 using OrderService.Data;
 using OrderService.Profiles;
 using OrderService.Services;
@@ -46,10 +45,12 @@ builder.Services.AddCors(options =>
 });
 
 
-builder.Services.AddHttpClient<CustomerApiClient>(client =>
+
+builder.Services.AddHttpClient<ICustomerApiClient, CustomerApiClient>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7261/");
+    client.BaseAddress = new Uri("https://localhost:7261");
 });
+
 
 // Typed HTTP client for communication with InventoryService
 builder.Services.AddHttpClient<IInventoryApiClient, InventoryApiClient>(client =>

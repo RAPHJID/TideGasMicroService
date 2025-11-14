@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using OrderService.Clients;
 using OrderService.Data;
 using OrderService.Models;
 using OrderService.Models.DTOs;
