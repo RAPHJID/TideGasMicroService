@@ -1,41 +1,44 @@
-﻿using System.Net.Http;
-using System.Net.Http.Json;
-using System.Threading.Tasks;
+﻿using System.Net.Http.Json;
+using OrderService.Models.DTOs;
+
 
 namespace OrderService.Services.HttpClients
 {
-    public interface IInventoryApiClient
-    {
-        Task<bool> CheckStockAsync(Guid cylinderId, int quantity);
-        Task<bool> DecreaseInventoryAsync(Guid cylinderId, int quantity);
-    }
-
     public class InventoryApiClient : IInventoryApiClient
     {
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient _http;
 
-        public InventoryApiClient(HttpClient httpClient)
+        public InventoryApiClient(HttpClient http)
         {
-            _httpClient = httpClient;
+            _http = http;
+        }
+
+        public async Task<CylinderDto?> GetCylinderByIdAsync(Guid id)
+        {
+            try
+            {
+                return await _http.GetFromJsonAsync<CylinderDto>($"api/cylinders/{id}");
+            }
+            catch
+            {
+                return null; // prevents crashing OrderService
+            }
         }
 
         public async Task<bool> CheckStockAsync(Guid cylinderId, int quantity)
         {
-            // Example: GET https://localhost:7037/api/inventory/check/{cylinderId}?quantity=5
-            var response = await _httpClient.GetAsync($"api/inventory/check/{cylinderId}?quantity={quantity}");
+            try
+            {
+                var response = await _http.GetFromJsonAsync<bool>(
+                    $"api/cylinders/{cylinderId}/check-stock?quantity={quantity}"
+                );
 
-            if (!response.IsSuccessStatusCode)
-                return false;
-
-            var result = await response.Content.ReadFromJsonAsync<bool>();
-            return result;
+                return response;
+            }
+            catch
+            {
+                return false; // fail-safe
+            }
         }
-        public async Task<bool> DecreaseInventoryAsync(Guid cylinderId, int quantity)
-        {
-            var response = await _httpClient.PatchAsync($"api/Inventory/{cylinderId}/decrease/{quantity}", null);
-            return response.IsSuccessStatusCode;
-        }
-
     }
 }
-
