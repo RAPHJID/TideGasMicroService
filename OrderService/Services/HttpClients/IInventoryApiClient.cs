@@ -4,7 +4,7 @@ namespace OrderService.Services.IServices
 {
     public interface IInventoryApiClient
     {
-        Task<CylinderDTO?> GetCylinderByIdAsync(Guid id);
+        Task<CylinderDto?> GetCylinderByIdAsync(Guid id);
         Task<bool> CheckStockAsync(Guid cylinderId, int quantity);
     }
 }
