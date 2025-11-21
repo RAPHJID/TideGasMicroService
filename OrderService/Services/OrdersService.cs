@@ -37,15 +37,12 @@ namespace OrderService.Services
             {
                 var dto = _mapper.Map<OrderReadDTO>(order);
 
-                // Fetch Customer
+                // Fetch data from other microservices
                 var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-                dto.CustomerName = customer?.Name ?? "Unknown";
-
-                // Fetch Cylinder
                 var cylinder = await _inventoryClient.GetCylinderByIdAsync(order.CylinderId);
-                dto.CylinderName = cylinder != null
-                    ? $"{cylinder.Brand} {cylinder.Size}"
-                    : "Unknown";
+
+                dto.CustomerName = customer?.Name ?? "Unknown";
+                dto.CylinderName = cylinder?.CylinderName ?? "Unknown";
 
                 orderDtos.Add(dto);
             }
@@ -61,19 +58,17 @@ namespace OrderService.Services
             var dto = _mapper.Map<OrderReadDTO>(order);
 
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-            dto.CustomerName = customer?.Name ?? "Unknown";
-
             var cylinder = await _inventoryClient.GetCylinderByIdAsync(order.CylinderId);
-            dto.CylinderName = cylinder != null
-                ? $"{cylinder.Brand} {cylinder.Size}"
-                : "Unknown";
+
+            dto.CustomerName = customer?.Name ?? "Unknown";
+            dto.CylinderName = cylinder?.CylinderName ?? "Unknown";
 
             return dto;
         }
 
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
-            // Check stock
+            // Check stock with Inventory service
             var inStock = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
             if (!inStock)
                 throw new Exception("Not enough stock available in InventoryService.");
@@ -88,17 +83,15 @@ namespace OrderService.Services
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            var result = _mapper.Map<OrderReadDTO>(order);
+            var orderDto = _mapper.Map<OrderReadDTO>(order);
 
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-            result.CustomerName = customer?.Name ?? "Unknown";
-
             var cylinder = await _inventoryClient.GetCylinderByIdAsync(order.CylinderId);
-            result.CylinderName = cylinder != null
-                ? $"{cylinder.Brand} {cylinder.Size}"
-                : "Unknown";
 
-            return result;
+            orderDto.CustomerName = customer?.Name ?? "Unknown";
+            orderDto.CylinderName = cylinder?.CylinderName ?? "Unknown";
+
+            return orderDto;
         }
 
         public async Task<bool> UpdateOrderStatusAsync(Guid id, string newStatus)
