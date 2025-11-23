@@ -10,10 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<CylinderDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<
-    CylinderService.Services.IServices.ICylinder,
-    CylinderService.Services.CylindersService>();
 
+builder.Services.AddScoped<ICylinder, CylindersService>();
 
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
