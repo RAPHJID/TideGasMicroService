@@ -36,6 +36,7 @@ public class InventorysService : InventoryInterface
     }
 
     // ===== INVENTORY METHODS =====
+
     public async Task<List<InventoryDto>> GetAllInventoriesAsync()
     {
         var inventories = await _appDbContext.Inventorys.AsNoTracking().ToListAsync();
@@ -99,7 +100,6 @@ public class InventorysService : InventoryInterface
                 return new(false, "New cylinder not found", null);
         }
 
-        // Map update
         existing.CylinderId = updatedInventory.CylinderId;
         existing.QuantityAvailable = updatedInventory.QuantityAvailable;
         existing.LastUpdated = DateTime.UtcNow;
@@ -113,9 +113,9 @@ public class InventorysService : InventoryInterface
         return new(true, null, dto);
     }
 
-    public async Task DecreaseQuantityAsync(Guid id, int quantity)
+    public async Task DecreaseQuantityAsync(Guid cylinderId, int quantity)
     {
-        var item = await _appDbContext.Inventorys.FirstOrDefaultAsync(i => i.CylinderId == id);
+        var item = await _appDbContext.Inventorys.FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
         if (item == null)
             throw new Exception("Inventory item not found.");
 
@@ -123,23 +123,22 @@ public class InventorysService : InventoryInterface
             throw new Exception("Not enough stock to decrease.");
 
         item.QuantityAvailable -= quantity;
+        item.LastUpdated = DateTime.UtcNow;
+
         await _appDbContext.SaveChangesAsync();
     }
 
-
-    public async Task IncreaseQuantityAsync(Guid id, int quantity)
+    public async Task IncreaseQuantityAsync(Guid cylinderId, int quantity)
     {
-        var inventory = await _appDbContext.Inventorys.FindAsync(id);
-        if (inventory == null)
+        var item = await _appDbContext.Inventorys.FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
+        if (item == null)
             throw new Exception("Inventory not found.");
 
-        inventory.QuantityAvailable += quantity;
-        inventory.LastUpdated = DateTime.UtcNow;
+        item.QuantityAvailable += quantity;
+        item.LastUpdated = DateTime.UtcNow;
 
-        _appDbContext.Inventorys.Update(inventory);
         await _appDbContext.SaveChangesAsync();
     }
-
 
     public async Task<ServiceResult<bool>> DeletedInventoryAsync(Guid inventoryId)
     {
