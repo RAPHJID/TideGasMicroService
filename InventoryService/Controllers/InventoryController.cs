@@ -47,33 +47,36 @@ public class InventoryController : ControllerBase
         return Ok(new { Message = "Inventory added successfully" });
     }
 
-    // PATCH: api/Inventory/{id}/increase/{quantity}
-    [HttpPatch("{id}/increase/{quantity}")]
-    public async Task<IActionResult> IncreaseQuantity(Guid id, int quantity)
+    
+    // PATCH: api/Inventory/{cylinderId}/increase/{quantity}
+    [HttpPatch("{cylinderId}/increase/{quantity}")]
+    public async Task<IActionResult> IncreaseQuantity(Guid cylinderId, int quantity)
     {
         if (quantity <= 0)
             return BadRequest("Quantity must be greater than zero.");
 
-        await _inventoryService.IncreaseQuantityAsync(id, quantity);
-        return Ok(new { Message = "Quantity updated successfully" });
+        await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
+        return Ok(new { Message = "Quantity increased successfully" });
     }
 
-    [HttpPatch("{id}/decrease/{quantity}")]
-    public async Task<IActionResult> DecreaseQuantity(Guid id, int quantity)
+    // PATCH: api/Inventory/{cylinderId}/decrease/{quantity}
+    [HttpPatch("{cylinderId}/decrease/{quantity}")]
+    public async Task<IActionResult> DecreaseQuantity(Guid cylinderId, int quantity)
     {
         if (quantity <= 0)
             return BadRequest("Quantity must be greater than zero.");
 
         try
         {
-            await _inventoryService.DecreaseQuantityAsync(id, quantity);
-            return Ok(new { message = "Quantity decreased successfully" });
+            await _inventoryService.DecreaseQuantityAsync(cylinderId, quantity);
+            return Ok(new { Message = "Quantity decreased successfully" });
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new { Error = ex.Message });
         }
     }
+
 
 
 
