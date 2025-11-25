@@ -26,15 +26,16 @@ public class InventoryController : ControllerBase
     }
 
     // GET: api/Inventory/{id}
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
+    [HttpGet("{cylinderId}")]
+    public async Task<IActionResult> GetById(Guid cylinderId)
     {
-        var inventory = await _inventoryService.GetInventoryByIdAsync(id);
+        var inventory = await _inventoryService.GetInventoryByIdAsync(cylinderId);
         if (inventory == null)
             return NotFound();
 
         return Ok(inventory);
     }
+
 
     // POST: api/Inventory
     [HttpPost]
