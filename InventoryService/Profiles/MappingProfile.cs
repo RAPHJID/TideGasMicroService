@@ -9,9 +9,14 @@ namespace InventoryService.Profiles
 
         public MappingProfile()
         {
-            // For creating, updating inventory & also returning inventory data
-            CreateMap<InventoryDto, Inventory>().ReverseMap();
-            CreateMap<AddUpdateInventory, Inventory>().ReverseMap();
+            CreateMap<Inventory, InventoryDto>()
+           .ForMember(dest => dest.cylinderId, opt => opt.MapFrom(src => src.CylinderId));
+
+            CreateMap<InventoryDto, Inventory>()
+                .ForMember(dest => dest.CylinderId, opt => opt.MapFrom(src => src.cylinderId));
+
+            CreateMap<AddUpdateInventory, Inventory>();
+            CreateMap<Inventory, AddUpdateInventory>();
         }
     }
 }
