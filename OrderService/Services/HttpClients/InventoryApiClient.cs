@@ -14,11 +14,11 @@ namespace OrderService.Services.HttpClients
             _http = http;
         }
 
-        public async Task<CylinderDto?> GetCylinderByIdAsync(Guid id)
+        public async Task<CylinderDto?> GetCylinderByIdAsync(Guid cylinderId)
         {
             try
             {
-                return await _http.GetFromJsonAsync<CylinderDto>($"api/cylinders/{id}");
+                return await _http.GetFromJsonAsync<CylinderDto>($"api/cylinders/{cylinderId}");
             }
             catch
             {
