@@ -70,6 +70,10 @@ namespace OrderService.Services
         {
             // Check stock with Inventory service
             var inStock = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
+
+            // 🔍 DEBUG LINE - check what we are sending & receiving
+            Console.WriteLine($"DEBUG CHECK-STOCK | CylinderId: {dto.CylinderId} | Quantity: {dto.Quantity} | Result: {inStock}");
+
             if (!inStock)
                 throw new Exception("Not enough stock available in InventoryService.");
 
