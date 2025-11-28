@@ -77,6 +77,7 @@ namespace OrderService.Services
             if (!inStock)
                 throw new Exception("Not enough stock available in InventoryService.");
 
+
             var order = _mapper.Map<Order>(dto);
 
             if (Enum.TryParse<OrderStatus>(dto.Status, true, out var status))

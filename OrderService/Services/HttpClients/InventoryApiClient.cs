@@ -12,6 +12,8 @@ namespace OrderService.Services.HttpClients
         public InventoryApiClient(HttpClient http)
         {
             _http = http;
+            // TEMP DEBUG LINE
+            Console.WriteLine($"[DEBUG] InventoryApiClient BaseAddress = {_http.BaseAddress}");
         }
 
         public async Task<CylinderDto?> GetCylinderByIdAsync(Guid cylinderId)
