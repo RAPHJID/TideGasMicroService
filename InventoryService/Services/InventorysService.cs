@@ -112,6 +112,16 @@ public class InventorysService : InventoryInterface
 
         return new(true, null, dto);
     }
+    public async Task<bool> CheckStockAsync(Guid cylinderId, int quantity)
+    {
+        var item = await _appDbContext.Inventorys.FindAsync(cylinderId);
+
+        if (item == null)
+            return false;
+
+        return item.QuantityAvailable >= quantity;
+    }
+
 
     public async Task DecreaseQuantityAsync(Guid cylinderId, int quantity)
     {
