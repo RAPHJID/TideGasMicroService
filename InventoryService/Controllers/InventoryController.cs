@@ -35,6 +35,13 @@ public class InventoryController : ControllerBase
 
         return Ok(inventory);
     }
+    // GET: api/Inventory/{cylinderId}/check-stock?quantity=3
+    [HttpGet("{cylinderId}/check-stock")]
+    public async Task<IActionResult> CheckStock(Guid cylinderId, int quantity)
+    {
+        var result = await _inventoryService.CheckStockAsync(cylinderId, quantity);
+        return Ok(result); // returns true or false
+    }
 
 
     // POST: api/Inventory
