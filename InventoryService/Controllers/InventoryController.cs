@@ -1,10 +1,6 @@
-﻿using InventoryService.Models;
-using InventoryService.Models.DTOs;
+﻿using InventoryService.Models.DTOs;
 using InventoryService.Services.IService;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
-
 
 [ApiController]
 [Route("api/[controller]")]
@@ -21,28 +17,29 @@ public class InventoryController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var inventories = await _inventoryService.GetAllInventoriesAsync();
-        return Ok(inventories);
+        var items = await _inventoryService.GetAllInventoriesAsync();
+        return Ok(items);
     }
 
-    // GET: api/Inventory/{id}
+    // GET: api/Inventory/{cylinderId}
     [HttpGet("{cylinderId}")]
     public async Task<IActionResult> GetById(Guid cylinderId)
     {
-        var inventory = await _inventoryService.GetInventoryByIdAsync(cylinderId);
-        if (inventory == null)
+        var item = await _inventoryService.GetInventoryByIdAsync(cylinderId);
+        if (item == null)
             return NotFound();
 
-        return Ok(inventory);
+        return Ok(item);
     }
+
+    // 👇 NEW CHECK-STOCK ENDPOINT
     // GET: api/Inventory/{cylinderId}/check-stock?quantity=3
     [HttpGet("{cylinderId}/check-stock")]
     public async Task<IActionResult> CheckStock(Guid cylinderId, int quantity)
     {
-        var result = await _inventoryService.CheckStockAsync(cylinderId, quantity);
-        return Ok(result); // returns true or false
+        var isAvailable = await _inventoryService.CheckStockAsync(cylinderId, quantity);
+        return Ok(isAvailable); // returns true/false
     }
-
 
     // POST: api/Inventory
     [HttpPost]
@@ -55,7 +52,6 @@ public class InventoryController : ControllerBase
         return Ok(new { Message = "Inventory added successfully" });
     }
 
-    
     // PATCH: api/Inventory/{cylinderId}/increase/{quantity}
     [HttpPatch("{cylinderId}/increase/{quantity}")]
     public async Task<IActionResult> IncreaseQuantity(Guid cylinderId, int quantity)
@@ -85,15 +81,12 @@ public class InventoryController : ControllerBase
         }
     }
 
-
-
-
     // DELETE: api/Inventory/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var inventory = await _inventoryService.GetInventoryByIdAsync(id);
-        if (inventory == null)
+        var item = await _inventoryService.GetInventoryByIdAsync(id);
+        if (item == null)
             return NotFound();
 
         await _inventoryService.DeletedInventoryAsync(id);
