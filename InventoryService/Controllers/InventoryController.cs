@@ -32,14 +32,25 @@ public class InventoryController : ControllerBase
         return Ok(item);
     }
 
-    // 👇 NEW CHECK-STOCK ENDPOINT
+  
+
     // GET: api/Inventory/{cylinderId}/check-stock?quantity=3
     [HttpGet("{cylinderId}/check-stock")]
-    public async Task<IActionResult> CheckStock(Guid cylinderId, int quantity)
+    public async Task<IActionResult> CheckStock(Guid cylinderId, [FromQuery] int quantity)
     {
-        var isAvailable = await _inventoryService.CheckStockAsync(cylinderId, quantity);
-        return Ok(isAvailable); // returns true/false
+        if (quantity <= 0)
+            return BadRequest(false);
+
+        var inventory = await _inventoryService.GetInventoryByIdAsync(cylinderId);
+
+        if (inventory == null)
+            return Ok(false);
+
+        var enough = inventory.QuantityAvailable >= quantity;
+
+        return Ok(enough);
     }
+
 
     // POST: api/Inventory
     [HttpPost]
