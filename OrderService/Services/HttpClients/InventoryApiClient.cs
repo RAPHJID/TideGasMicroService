@@ -33,7 +33,7 @@ namespace OrderService.Services.HttpClients
             try
             {
                 var response = await _http.GetFromJsonAsync<bool>(
-                    $"api/cylinders/{cylinderId}/check-stock?quantity={quantity}"
+                    $"api/Inventory/{cylinderId}/check-stock?quantity={quantity}"
                 );
 
                 return response;

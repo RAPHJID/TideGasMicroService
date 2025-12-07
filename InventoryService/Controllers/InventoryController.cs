@@ -89,7 +89,7 @@ public class InventoryController : ControllerBase
         if (item == null)
             return NotFound();
 
-        await _inventoryService.DeletedInventoryAsync(id);
+        await _inventoryService.DeleteInventoryAsync(id);
         return Ok(new { Message = "Inventory deleted successfully" });
     }
 }
