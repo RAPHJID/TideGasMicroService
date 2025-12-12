@@ -3,7 +3,8 @@ using CylinderService.Models;
 
 namespace InventoryService.Models
 {
-    public class Inventory
+   
+} public class Inventory
     {
         public Guid Id { get; set; }
 
@@ -13,4 +14,3 @@ namespace InventoryService.Models
 
 
     }
-}

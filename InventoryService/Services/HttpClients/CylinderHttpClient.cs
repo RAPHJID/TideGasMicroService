@@ -26,7 +26,7 @@ namespace InventoryService.Services.HttpClients
 
         public async Task<IEnumerable<CylinderDto>> GetAllAsync()
         {
-            var resp = await _client.GetAsync("api/Cylinder/all");
+            var resp = await _client.GetAsync("api/Cylinders/all");
 
             if (!resp.IsSuccessStatusCode)
                 await HandleNonSuccessAsync(resp);
@@ -36,7 +36,7 @@ namespace InventoryService.Services.HttpClients
 
         public async Task<CylinderDto?> GetByIdAsync(Guid id)
         {
-            var resp = await _client.GetAsync($"api/Cylinder/{id}");
+            var resp = await _client.GetAsync($"api/Cylinders/{id}");
             if (resp.StatusCode == HttpStatusCode.NotFound) return null;
             if (!resp.IsSuccessStatusCode)
                 await HandleNonSuccessAsync(resp);
@@ -46,7 +46,7 @@ namespace InventoryService.Services.HttpClients
 
         public async Task<CylinderDto> CreateAsync(AddUpdateCylinderDto dto)
         {
-            var resp = await _client.PostAsJsonAsync("api/Cylinder", dto);
+            var resp = await _client.PostAsJsonAsync("api/Cylinders", dto);
             if (!resp.IsSuccessStatusCode)
                 await HandleNonSuccessAsync(resp);
             return await resp.Content.ReadFromJsonAsync<CylinderDto>();
@@ -54,7 +54,7 @@ namespace InventoryService.Services.HttpClients
 
         public async Task<CylinderDto?> UpdateAsync(Guid id, AddUpdateCylinderDto dto)
         {
-            var resp = await _client.PutAsJsonAsync($"api/Cylinder/{id}", dto);
+            var resp = await _client.PutAsJsonAsync($"api/Cylinders/{id}", dto);
             if (resp.StatusCode == HttpStatusCode.NotFound) return null;
             if (!resp.IsSuccessStatusCode)
                 await HandleNonSuccessAsync(resp);
@@ -63,7 +63,7 @@ namespace InventoryService.Services.HttpClients
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var resp = await _client.DeleteAsync($"api/Cylinder/{id}");
+            var resp = await _client.DeleteAsync($"api/Cylinders/{id}");
             if (resp.StatusCode == HttpStatusCode.NotFound) return false;
             if (!resp.IsSuccessStatusCode)
                 await HandleNonSuccessAsync(resp);

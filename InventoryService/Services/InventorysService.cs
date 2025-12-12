@@ -2,26 +2,43 @@
 using InventoryService.Models;
 using InventoryService.Models.DTOs;
 using InventoryService.Services.IService;
+using InventoryService.Services.HttpClients;
 using Microsoft.EntityFrameworkCore;
 
 public class InventorysService : InventoryInterface
 {
     private readonly AppDbContext _context;
+    private readonly ICylinderHttpClient _cylinderClient;
 
-    public InventorysService(AppDbContext context)
+    public InventorysService(
+        AppDbContext context,
+        ICylinderHttpClient cylinderClient)
     {
         _context = context;
+        _cylinderClient = cylinderClient;
     }
 
     public async Task<IEnumerable<InventoryDto>> GetAllInventoriesAsync()
     {
-        return await _context.Inventorys
-            .Select(i => new InventoryDto
+        var inventories = await _context.Inventorys.ToListAsync();
+
+        var result = new List<InventoryDto>();
+
+        foreach (var i in inventories)
+        {
+            // Call CylinderService to get size/name
+            var cylinder = await _cylinderClient.GetByIdAsync(i.CylinderId);
+
+            result.Add(new InventoryDto
             {
                 cylinderId = i.CylinderId,
-                QuantityAvailable = i.QuantityAvailable
-            })
-            .ToListAsync();
+                QuantityAvailable = i.QuantityAvailable,
+                Name = cylinder?.Name ?? "Unknown",
+                Size = cylinder?.Size ?? "N/A"
+            });
+        }
+
+        return result;
     }
 
     public async Task<InventoryDto?> GetInventoryByIdAsync(Guid cylinderId)
@@ -29,10 +46,14 @@ public class InventorysService : InventoryInterface
         var item = await _context.Inventorys.FindAsync(cylinderId);
         if (item == null) return null;
 
+        var cylinder = await _cylinderClient.GetByIdAsync(cylinderId);
+
         return new InventoryDto
         {
             cylinderId = item.CylinderId,
-            QuantityAvailable = item.QuantityAvailable
+            QuantityAvailable = item.QuantityAvailable,
+            Name = cylinder?.Name ?? "Unknown",
+            Size = cylinder?.Size ?? "N/A"
         };
     }
 
@@ -79,7 +100,7 @@ public class InventorysService : InventoryInterface
         await _context.SaveChangesAsync();
     }
 
-   
+    // ✅ This is used by OrderService
     public async Task<bool> CheckStockAsync(Guid cylinderId, int quantity)
     {
         var item = await _context.Inventorys.FindAsync(cylinderId);
