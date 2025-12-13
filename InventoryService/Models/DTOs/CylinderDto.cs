@@ -2,7 +2,7 @@
 {
     public class CylinderDto
     {
-        public Guid Id { get; set; }
+        public Guid CylinderId { get; set; }
         public string? Size { get; set; }
         public string? Name { get; set; }
 
