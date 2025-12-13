@@ -26,23 +26,28 @@ namespace InventoryService.Services.HttpClients
 
         public async Task<IEnumerable<CylinderDto>> GetAllAsync()
         {
-            var resp = await _client.GetAsync("api/Cylinders/all");
+            var resp = await _client.GetAsync("api/Cylinder/all");
 
             if (!resp.IsSuccessStatusCode)
                 await HandleNonSuccessAsync(resp);
 
-            return await resp.Content.ReadFromJsonAsync<IEnumerable<CylinderDto>>() ?? Array.Empty<CylinderDto>();
+            return await resp.Content.ReadFromJsonAsync<IEnumerable<CylinderDto>>()
+                   ?? Array.Empty<CylinderDto>();
         }
 
         public async Task<CylinderDto?> GetByIdAsync(Guid id)
         {
-            var resp = await _client.GetAsync($"api/Cylinders/{id}");
-            if (resp.StatusCode == HttpStatusCode.NotFound) return null;
+            var resp = await _client.GetAsync($"api/Cylinder/{id}");
+
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+                return null;
+
             if (!resp.IsSuccessStatusCode)
                 await HandleNonSuccessAsync(resp);
 
             return await resp.Content.ReadFromJsonAsync<CylinderDto>();
         }
+
 
         public async Task<CylinderDto> CreateAsync(AddUpdateCylinderDto dto)
         {
