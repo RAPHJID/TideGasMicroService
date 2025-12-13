@@ -2,12 +2,14 @@
 {
     public class InventoryDto
     {
-        public Guid cylinderId { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public Guid CylinderId { get; set; }
+
         public string Size { get; set; } = string.Empty;
+        public string Brand { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string Condition { get; set; } = string.Empty;
 
         public decimal QuantityAvailable { get; set; }
-        public DateTime LastUpdated { get; set; }
 
     }
 }

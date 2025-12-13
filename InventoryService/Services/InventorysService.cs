@@ -21,25 +21,27 @@ public class InventorysService : InventoryInterface
     public async Task<IEnumerable<InventoryDto>> GetAllInventoriesAsync()
     {
         var inventories = await _context.Inventorys.ToListAsync();
-
         var result = new List<InventoryDto>();
 
-        foreach (var i in inventories)
+        foreach (var item in inventories)
         {
-            // Call CylinderService to get size/name
-            var cylinder = await _cylinderClient.GetByIdAsync(i.CylinderId);
+            // Call CylinderService
+            var cylinder = await _cylinderClient.GetByIdAsync(item.CylinderId);
 
             result.Add(new InventoryDto
             {
-                cylinderId = i.CylinderId,
-                QuantityAvailable = i.QuantityAvailable,
-                Name = cylinder?.Name ?? "Unknown",
-                Size = cylinder?.Size ?? "N/A"
+                CylinderId = item.CylinderId,
+                QuantityAvailable = item.QuantityAvailable,
+                Size = cylinder?.Size ?? "N/A",
+                Brand = cylinder?.Brand ?? "Unknown",
+                Status = cylinder?.Status ?? "Unknown",
+                Condition = cylinder?.Condition ?? "Unknown"
             });
         }
 
         return result;
     }
+
 
     public async Task<InventoryDto?> GetInventoryByIdAsync(Guid cylinderId)
     {
@@ -50,9 +52,9 @@ public class InventorysService : InventoryInterface
 
         return new InventoryDto
         {
-            cylinderId = item.CylinderId,
+            CylinderId = item.CylinderId,
             QuantityAvailable = item.QuantityAvailable,
-            Name = cylinder?.Name ?? "Unknown",
+            Brand = cylinder?.Brand ?? "Unknown",
             Size = cylinder?.Size ?? "N/A"
         };
     }
