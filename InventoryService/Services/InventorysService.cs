@@ -23,15 +23,15 @@ public class InventorysService : InventoryInterface
         var inventories = await _context.Inventorys.ToListAsync();
         var result = new List<InventoryDto>();
 
-        foreach (var item in inventories)
+        foreach (var inv in inventories)
         {
-            // Call CylinderService
-            var cylinder = await _cylinderClient.GetByIdAsync(item.CylinderId);
+            var cylinder = await _cylinderClient.GetByIdAsync(inv.CylinderId);
 
             result.Add(new InventoryDto
             {
-                CylinderId = item.CylinderId,
-                QuantityAvailable = item.QuantityAvailable,
+                CylinderId = inv.CylinderId,
+                QuantityAvailable = inv.QuantityAvailable,
+
                 Size = cylinder?.Size ?? "N/A",
                 Brand = cylinder?.Brand ?? "Unknown",
                 Status = cylinder?.Status ?? "Unknown",
@@ -41,6 +41,7 @@ public class InventorysService : InventoryInterface
 
         return result;
     }
+
 
 
     public async Task<InventoryDto?> GetInventoryByIdAsync(Guid cylinderId)

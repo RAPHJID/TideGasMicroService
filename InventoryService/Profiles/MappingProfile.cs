@@ -6,14 +6,15 @@ namespace InventoryService.Profiles
 {
     public class MappingProfile : Profile
     {
-
         public MappingProfile()
         {
             CreateMap<Inventory, InventoryDto>()
-           .ForMember(dest => dest.cylinderId, opt => opt.MapFrom(src => src.CylinderId));
+                .ForMember(dest => dest.CylinderId,
+                           opt => opt.MapFrom(src => src.CylinderId));
 
             CreateMap<InventoryDto, Inventory>()
-                .ForMember(dest => dest.CylinderId, opt => opt.MapFrom(src => src.cylinderId));
+                .ForMember(dest => dest.CylinderId,
+                           opt => opt.MapFrom(src => src.CylinderId));
 
             CreateMap<AddUpdateInventory, Inventory>();
             CreateMap<Inventory, AddUpdateInventory>();
