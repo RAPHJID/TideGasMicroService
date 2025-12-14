@@ -1,10 +1,11 @@
-﻿using System;
+﻿using InventoryService.Common;
+using InventoryService.Models.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using InventoryService.Models.DTOs;
 
 namespace InventoryService.Services.HttpClients
 {
@@ -35,18 +36,29 @@ namespace InventoryService.Services.HttpClients
                    ?? Array.Empty<CylinderDto>();
         }
 
-        public async Task<CylinderDto?> GetByIdAsync(Guid id)
+        public async Task<Result<CylinderDto>> GetByIdAsync(Guid id)
         {
             var resp = await _client.GetAsync($"api/Cylinder/{id}");
 
             if (resp.StatusCode == HttpStatusCode.NotFound)
-                return null;
+                return Result<CylinderDto>.Failure("Cylinder not found");
 
             if (!resp.IsSuccessStatusCode)
-                await HandleNonSuccessAsync(resp);
+            {
+                var body = await resp.Content.ReadAsStringAsync();
+                return Result<CylinderDto>.Failure(
+                    $"Cylinder API error {(int)resp.StatusCode}: {body}"
+                );
+            }
 
-            return await resp.Content.ReadFromJsonAsync<CylinderDto>();
+            var cylinder = await resp.Content.ReadFromJsonAsync<CylinderDto>();
+
+            if (cylinder == null)
+                return Result<CylinderDto>.Failure("Empty response from CylinderService");
+
+            return Result<CylinderDto>.Success(cylinder);
         }
+
 
 
         public async Task<CylinderDto> CreateAsync(AddUpdateCylinderDto dto)
