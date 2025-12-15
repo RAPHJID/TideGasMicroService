@@ -7,7 +7,7 @@ public interface InventoryInterface
     Task<IEnumerable<InventoryDto>> GetAllInventoriesAsync();
     Task<InventoryDto?> GetInventoryByIdAsync(Guid cylinderId);
     Task AddInventoryAsync(AddUpdateInventory dto);
-    Task IncreaseQuantityAsync(Guid cylinderId, int quantity);
+    Task<bool> IncreaseQuantityAsync(Guid cylinderId, int quantity);
     Task DecreaseQuantityAsync(Guid cylinderId, int quantity);
     Task DeleteInventoryAsync(Guid cylinderId);
     Task<bool> CheckStockAsync(Guid cylinderId, int quantity);

@@ -99,13 +99,23 @@ public class InventorysService : InventoryInterface
         await _context.SaveChangesAsync();
     }
 
-    public async Task IncreaseQuantityAsync(Guid cylinderId, int quantity)
+   
+    public async Task<bool> IncreaseQuantityAsync(Guid cylinderId, int quantity)
     {
-        var item = await _context.Inventorys.FindAsync(cylinderId);
-        if (item == null) return;
+        if (quantity <= 0)
+            throw new ArgumentException("Quantity must be greater than zero.");
+
+        var item = await _context.Inventorys
+            .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
+
+        if (item == null)
+            return false;
 
         item.QuantityAvailable += quantity;
+        item.LastUpdated = DateTime.UtcNow;
+
         await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task DecreaseQuantityAsync(Guid cylinderId, int quantity)

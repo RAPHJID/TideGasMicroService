@@ -74,14 +74,25 @@ public class InventoryController : ControllerBase
     }
 
     // PATCH: api/Inventory/{cylinderId}/increase/{quantity}
-    [HttpPatch("{cylinderId}/increase/{quantity}")]
-    public async Task<IActionResult> IncreaseQuantity(Guid cylinderId, int quantity)
-    {
-        if (quantity <= 0)
-            return BadRequest("Quantity must be greater than zero.");
+    //[HttpPatch("{cylinderId}/increase/{quantity}")]
+    //public async Task<IActionResult> IncreaseQuantity(Guid cylinderId, int quantity)
+    //{
+    //    if (quantity <= 0)
+    //        return BadRequest("Quantity must be greater than zero.");
 
-        await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
-        return Ok(new { Message = "Quantity increased successfully" });
+    //    await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
+    //    return Ok(new { Message = "Quantity increased successfully" });
+    //}
+
+    [HttpPatch("{cylinderId}/increase/{quantity}")]
+    public async Task<IActionResult> Increase(Guid cylinderId, int quantity)
+    {
+        var success = await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
+
+        if (!success)
+            return NotFound("Inventory not found.");
+
+        return Ok(new { message = "Quantity increased successfully" });
     }
 
     // PATCH: api/Inventory/{cylinderId}/decrease/{quantity}
