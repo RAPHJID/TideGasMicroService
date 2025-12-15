@@ -72,19 +72,29 @@ public class InventorysService : InventoryInterface
 
         var cylinderResult = await _cylinderClient.GetByIdAsync(cylinderId);
 
-        if (!cylinderResult.IsSuccess)
-            throw new Exception(cylinderResult.Error);
-
         return new InventoryDto
         {
             CylinderId = item.CylinderId,
             QuantityAvailable = item.QuantityAvailable,
-            Size = cylinderResult.Value!.Size ?? "N/A",
-            Brand = cylinderResult.Value.Brand,
-            Status = cylinderResult.Value.Status,
-            Condition = cylinderResult.Value.Condition
+
+            Size = cylinderResult.IsSuccess
+                ? cylinderResult.Value!.Size ?? "N/A"
+                : "N/A",
+
+            Brand = cylinderResult.IsSuccess
+                ? cylinderResult.Value!.Brand
+                : "Unknown",
+
+            Status = cylinderResult.IsSuccess
+                ? cylinderResult.Value!.Status
+                : "Unknown",
+
+            Condition = cylinderResult.IsSuccess
+                ? cylinderResult.Value!.Condition
+                : "Unknown"
         };
     }
+
 
 
     public async Task AddInventoryAsync(AddUpdateInventory dto)
@@ -118,18 +128,27 @@ public class InventorysService : InventoryInterface
         return true;
     }
 
-    public async Task DecreaseQuantityAsync(Guid cylinderId, int quantity)
+    public async Task<bool> DecreaseQuantityAsync(Guid cylinderId, int quantity)
     {
-        var item = await _context.Inventorys.FindAsync(cylinderId);
+        if (quantity <= 0)
+            throw new ArgumentException("Quantity must be greater than zero.");
+
+        var item = await _context.Inventorys
+            .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
+
         if (item == null)
-            throw new Exception("Cylinder not found in inventory.");
+            return false;
 
         if (item.QuantityAvailable < quantity)
-            throw new Exception("Not enough stock to decrease.");
+            throw new InvalidOperationException("Not enough stock available.");
 
         item.QuantityAvailable -= quantity;
+        item.LastUpdated = DateTime.UtcNow;
+
         await _context.SaveChangesAsync();
+        return true;
     }
+
 
     public async Task DeleteInventoryAsync(Guid cylinderId)
     {
