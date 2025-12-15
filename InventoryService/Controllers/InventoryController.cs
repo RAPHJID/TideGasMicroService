@@ -22,17 +22,27 @@ public class InventoryController : ControllerBase
     }
 
     // GET: api/Inventory/{cylinderId}
-    [HttpGet("{cylinderId}")]
+    //[HttpGet("{cylinderId}")]
+    //public async Task<IActionResult> GetById(Guid cylinderId)
+    //{
+    //    var item = await _inventoryService.GetInventoryByIdAsync(cylinderId);
+    //    if (item == null)
+    //        return NotFound();
+
+    //    return Ok(item);
+    //}
+
+    [HttpGet("{cylinderId:guid}")]
     public async Task<IActionResult> GetById(Guid cylinderId)
     {
-        var item = await _inventoryService.GetInventoryByIdAsync(cylinderId);
-        if (item == null)
+        var inventory = await _inventoryService.GetInventoryByIdAsync(cylinderId);
+
+        if (inventory == null)
             return NotFound();
 
-        return Ok(item);
+        return Ok(inventory);
     }
 
-  
 
     // GET: api/Inventory/{cylinderId}/check-stock?quantity=3
     [HttpGet("{cylinderId}/check-stock")]
