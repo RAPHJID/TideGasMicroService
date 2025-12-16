@@ -164,12 +164,21 @@ public class InventorysService : InventoryInterface
         await _context.SaveChangesAsync();
     }
 
-    // ✅ This is used by OrderService
-    public async Task<bool> CheckStockAsync(Guid cylinderId, int quantity)
+    public async Task<Result<bool>> CheckStockAsync(Guid cylinderId, int quantity)
     {
-        var item = await _context.Inventorys.FindAsync(cylinderId);
-        if (item == null) return false;
+        if (quantity <= 0)
+            return Result<bool>.Failure("Quantity must be greater than zero.");
 
-        return item.QuantityAvailable >= quantity;
+        var item = await _context.Inventorys
+            .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
+
+        if (item == null)
+            return Result<bool>.Failure("Inventory item not found.");
+
+        if (item.QuantityAvailable < quantity)
+            return Result<bool>.Failure("Insufficient stock.");
+
+        return Result<bool>.Success(true);
     }
+
 }
