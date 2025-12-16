@@ -21,16 +21,7 @@ public class InventoryController : ControllerBase
         return Ok(items);
     }
 
-    // GET: api/Inventory/{cylinderId}
-    //[HttpGet("{cylinderId}")]
-    //public async Task<IActionResult> GetById(Guid cylinderId)
-    //{
-    //    var item = await _inventoryService.GetInventoryByIdAsync(cylinderId);
-    //    if (item == null)
-    //        return NotFound();
-
-    //    return Ok(item);
-    //}
+   
 
     [HttpGet("{cylinderId:guid}")]
     public async Task<IActionResult> GetById(Guid cylinderId)
@@ -73,27 +64,19 @@ public class InventoryController : ControllerBase
         return Ok(new { Message = "Inventory added successfully" });
     }
 
-    // PATCH: api/Inventory/{cylinderId}/increase/{quantity}
-    //[HttpPatch("{cylinderId}/increase/{quantity}")]
-    //public async Task<IActionResult> IncreaseQuantity(Guid cylinderId, int quantity)
-    //{
-    //    if (quantity <= 0)
-    //        return BadRequest("Quantity must be greater than zero.");
+    
 
-    //    await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
-    //    return Ok(new { Message = "Quantity increased successfully" });
-    //}
-
-    [HttpPatch("{cylinderId}/increase/{quantity}")]
-    public async Task<IActionResult> Increase(Guid cylinderId, int quantity)
+    [HttpPatch("{cylinderId}/increase")]
+    public async Task<IActionResult> Increase(Guid cylinderId, [FromQuery] int quantity)
     {
-        var success = await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
+        var result = await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
 
-        if (!success)
-            return NotFound("Inventory not found.");
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
 
         return Ok(new { message = "Quantity increased successfully" });
     }
+
 
     [HttpPatch("{cylinderId}/decrease")]
     public async Task<IActionResult> Decrease(Guid cylinderId, [FromQuery] int quantity)
