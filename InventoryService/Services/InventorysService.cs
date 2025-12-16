@@ -110,24 +110,26 @@ public class InventorysService : InventoryInterface
         await _context.SaveChangesAsync();
     }
 
-   
-    public async Task<bool> IncreaseQuantityAsync(Guid cylinderId, int quantity)
+
+    public async Task<Result<bool>> IncreaseQuantityAsync(Guid cylinderId, int quantity)
     {
         if (quantity <= 0)
-            throw new ArgumentException("Quantity must be greater than zero.");
+            return Result<bool>.Failure("Quantity must be greater than zero.");
 
         var item = await _context.Inventorys
             .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
 
         if (item == null)
-            return false;
+            return Result<bool>.Failure("Inventory item not found.");
 
         item.QuantityAvailable += quantity;
         item.LastUpdated = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
-        return true;
+
+        return Result<bool>.Success(true);
     }
+
 
     public async Task<Result<bool>> DecreaseQuantityAsync(Guid cylinderId, int quantity)
     {
