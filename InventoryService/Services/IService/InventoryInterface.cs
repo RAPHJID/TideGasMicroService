@@ -6,7 +6,7 @@ namespace InventoryService.Services.IService;
 public interface InventoryInterface
 {
     Task<IEnumerable<InventoryDto>> GetAllInventoriesAsync();
-    Task<InventoryDto?> GetInventoryByIdAsync(Guid cylinderId);
+    Task<Result<InventoryDto>> GetInventoryByIdAsync(Guid cylinderId);
     Task AddInventoryAsync(AddUpdateInventory dto);
     Task<Result<bool>> IncreaseQuantityAsync(Guid cylinderId, int quantity);
     Task<Result<bool>> DecreaseQuantityAsync(Guid cylinderId, int quantity);

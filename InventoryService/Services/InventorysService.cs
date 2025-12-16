@@ -63,38 +63,32 @@ public class InventorysService : InventoryInterface
 
 
 
-    public async Task<InventoryDto?> GetInventoryByIdAsync(Guid cylinderId)
+    public async Task<Result<InventoryDto>> GetInventoryByIdAsync(Guid cylinderId)
     {
         var item = await _context.Inventorys
             .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
 
         if (item == null)
-            return null;
+            return Result<InventoryDto>.Failure("Inventory item not found.");
 
         var cylinderResult = await _cylinderClient.GetByIdAsync(cylinderId);
 
-        return new InventoryDto
+        if (!cylinderResult.IsSuccess)
+            return Result<InventoryDto>.Failure(cylinderResult.Error!);
+
+        var cylinder = cylinderResult.Value!;
+
+        return Result<InventoryDto>.Success(new InventoryDto
         {
             CylinderId = item.CylinderId,
             QuantityAvailable = item.QuantityAvailable,
-
-            Size = cylinderResult.IsSuccess
-                ? cylinderResult.Value!.Size ?? "N/A"
-                : "N/A",
-
-            Brand = cylinderResult.IsSuccess
-                ? cylinderResult.Value!.Brand
-                : "Unknown",
-
-            Status = cylinderResult.IsSuccess
-                ? cylinderResult.Value!.Status
-                : "Unknown",
-
-            Condition = cylinderResult.IsSuccess
-                ? cylinderResult.Value!.Condition
-                : "Unknown"
-        };
+            Size = cylinder.Size ?? "N/A",
+            Brand = cylinder.Brand,
+            Status = cylinder.Status,
+            Condition = cylinder.Condition
+        });
     }
+
 
 
 

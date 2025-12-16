@@ -21,36 +21,39 @@ public class InventoryController : ControllerBase
         return Ok(items);
     }
 
-   
 
-    [HttpGet("{cylinderId:guid}")]
+
+    [HttpGet("{cylinderId}")]
     public async Task<IActionResult> GetById(Guid cylinderId)
     {
-        var inventory = await _inventoryService.GetInventoryByIdAsync(cylinderId);
+        var result = await _inventoryService.GetInventoryByIdAsync(cylinderId);
 
-        if (inventory == null)
-            return NotFound();
+        if (!result.IsSuccess)
+            return NotFound(result.Error);
 
-        return Ok(inventory);
+        return Ok(result.Value);
     }
 
 
-    // GET: api/Inventory/{cylinderId}/check-stock?quantity=3
+
     [HttpGet("{cylinderId}/check-stock")]
     public async Task<IActionResult> CheckStock(Guid cylinderId, [FromQuery] int quantity)
     {
         if (quantity <= 0)
-            return BadRequest(false);
+            return BadRequest("Quantity must be greater than zero.");
 
-        var inventory = await _inventoryService.GetInventoryByIdAsync(cylinderId);
+        var result = await _inventoryService.GetInventoryByIdAsync(cylinderId);
 
-        if (inventory == null)
-            return Ok(false);
+        if (!result.IsSuccess)
+            return Ok(false); 
+
+        var inventory = result.Value!;
 
         var enough = inventory.QuantityAvailable >= quantity;
 
         return Ok(enough);
     }
+
 
 
     // POST: api/Inventory
