@@ -1,4 +1,5 @@
-﻿using InventoryService.Models.DTOs;
+﻿using InventoryService.Common;
+using InventoryService.Models.DTOs;
 
 namespace InventoryService.Services.IService;
 
@@ -8,7 +9,7 @@ public interface InventoryInterface
     Task<InventoryDto?> GetInventoryByIdAsync(Guid cylinderId);
     Task AddInventoryAsync(AddUpdateInventory dto);
     Task<bool> IncreaseQuantityAsync(Guid cylinderId, int quantity);
-    Task<bool> DecreaseQuantityAsync(Guid cylinderId, int quantity);
+    Task<Result<bool>> DecreaseQuantityAsync(Guid cylinderId, int quantity);
     Task DeleteInventoryAsync(Guid cylinderId);
     Task<bool> CheckStockAsync(Guid cylinderId, int quantity);
 }
