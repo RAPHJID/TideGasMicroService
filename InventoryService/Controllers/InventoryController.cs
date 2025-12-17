@@ -22,7 +22,7 @@ public class InventoryController : ControllerBase
     }
 
 
-
+   
     [HttpGet("{cylinderId}")]
     public async Task<IActionResult> GetById(Guid cylinderId)
     {
@@ -33,6 +33,7 @@ public class InventoryController : ControllerBase
 
         return Ok(result.Value);
     }
+
 
 
     [HttpGet("{cylinderId}/check-stock")]
