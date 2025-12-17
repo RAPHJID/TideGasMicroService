@@ -35,24 +35,19 @@ public class InventoryController : ControllerBase
     }
 
 
-
     [HttpGet("{cylinderId}/check-stock")]
-    public async Task<IActionResult> CheckStock(Guid cylinderId, [FromQuery] int quantity)
+    public async Task<IActionResult> CheckStock(
+        Guid cylinderId,
+        [FromQuery] int quantity)
     {
-        if (quantity <= 0)
-            return BadRequest("Quantity must be greater than zero.");
-
-        var result = await _inventoryService.GetInventoryByIdAsync(cylinderId);
+        var result = await _inventoryService.CheckStockAsync(cylinderId, quantity);
 
         if (!result.IsSuccess)
-            return Ok(false); 
+            return BadRequest(result.Error);
 
-        var inventory = result.Value!;
-
-        var enough = inventory.QuantityAvailable >= quantity;
-
-        return Ok(enough);
+        return Ok(result.Value);
     }
+
 
     [HttpPost]
     public async Task<IActionResult> Add([FromBody] AddUpdateInventory dto)

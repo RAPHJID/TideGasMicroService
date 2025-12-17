@@ -175,12 +175,13 @@ public class InventorysService : InventoryInterface
             .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
 
         if (item == null)
-            return Result<bool>.Failure("Inventory item not found.");
+            return Result<bool>.Failure("Inventory not found.");
 
-        if (item.QuantityAvailable < quantity)
-            return Result<bool>.Failure("Insufficient stock.");
+        var enoughStock = item.QuantityAvailable >= quantity;
 
-        return Result<bool>.Success(true);
+        return Result<bool>.Success(enoughStock);
     }
+
+
 
 }
