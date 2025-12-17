@@ -82,15 +82,18 @@ public class InventoryController : ControllerBase
 
 
     [HttpPatch("{cylinderId}/decrease")]
-    public async Task<IActionResult> Decrease(Guid cylinderId, [FromQuery] int quantity)
+    public async Task<IActionResult> DecreaseStock(
+        Guid cylinderId,
+        [FromQuery] int quantity)
     {
         var result = await _inventoryService.DecreaseQuantityAsync(cylinderId, quantity);
 
         if (!result.IsSuccess)
             return BadRequest(result.Error);
 
-        return Ok(new { message = "Quantity decreased successfully" });
+        return NoContent();
     }
+
 
 
 
