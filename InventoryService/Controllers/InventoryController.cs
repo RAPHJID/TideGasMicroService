@@ -54,9 +54,6 @@ public class InventoryController : ControllerBase
         return Ok(enough);
     }
 
-
-
-    // POST: api/Inventory
     [HttpPost]
     public async Task<IActionResult> Add([FromBody] AddUpdateInventory dto)
     {
@@ -66,20 +63,19 @@ public class InventoryController : ControllerBase
         await _inventoryService.AddInventoryAsync(dto);
         return Ok(new { Message = "Inventory added successfully" });
     }
-
     
-
     [HttpPatch("{cylinderId}/increase")]
-    public async Task<IActionResult> Increase(Guid cylinderId, [FromQuery] int quantity)
+    public async Task<IActionResult> IncreaseStock(
+        Guid cylinderId,
+        [FromQuery] int quantity)
     {
         var result = await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
 
         if (!result.IsSuccess)
             return BadRequest(result.Error);
 
-        return Ok(new { message = "Quantity increased successfully" });
+        return NoContent();
     }
-
 
     [HttpPatch("{cylinderId}/decrease")]
     public async Task<IActionResult> DecreaseStock(

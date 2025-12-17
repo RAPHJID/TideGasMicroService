@@ -114,7 +114,7 @@ public class InventorysService : InventoryInterface
             .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
 
         if (item == null)
-            return Result<bool>.Failure("Inventory item not found.");
+            return Result<bool>.Failure("Inventory not found.");
 
         item.QuantityAvailable += quantity;
         item.LastUpdated = DateTime.UtcNow;
@@ -123,6 +123,7 @@ public class InventorysService : InventoryInterface
 
         return Result<bool>.Success(true);
     }
+
 
 
     public async Task<Result<bool>> DecreaseQuantityAsync(Guid cylinderId, int quantity)
