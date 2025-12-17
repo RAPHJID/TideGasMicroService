@@ -94,15 +94,15 @@ public class InventoryController : ControllerBase
 
 
 
-    // DELETE: api/Inventory/{id}
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    [HttpDelete("{cylinderId}")]
+    public async Task<IActionResult> Delete(Guid cylinderId)
     {
-        var item = await _inventoryService.GetInventoryByIdAsync(id);
-        if (item == null)
-            return NotFound();
+        var result = await _inventoryService.DeleteInventoryAsync(cylinderId);
 
-        await _inventoryService.DeleteInventoryAsync(id);
-        return Ok(new { Message = "Inventory deleted successfully" });
+        if (!result.IsSuccess)
+            return NotFound(result.Error);
+
+        return NoContent(); 
     }
+
 }

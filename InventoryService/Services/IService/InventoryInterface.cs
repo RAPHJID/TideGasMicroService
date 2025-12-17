@@ -10,6 +10,6 @@ public interface InventoryInterface
     Task AddInventoryAsync(AddUpdateInventory dto);
     Task<Result<bool>> IncreaseQuantityAsync(Guid cylinderId, int quantity);
     Task<Result<bool>> DecreaseQuantityAsync(Guid cylinderId, int quantity);
-    Task DeleteInventoryAsync(Guid cylinderId);
+    Task <Result<bool>>DeleteInventoryAsync(Guid cylinderId);
     Task<Result<bool>> CheckStockAsync(Guid cylinderId, int quantity);
 }

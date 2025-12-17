@@ -149,14 +149,20 @@ public class InventorysService : InventoryInterface
 
 
 
-    public async Task DeleteInventoryAsync(Guid cylinderId)
+    public async Task<Result<bool>> DeleteInventoryAsync(Guid cylinderId)
     {
-        var item = await _context.Inventorys.FindAsync(cylinderId);
-        if (item == null) return;
+        var item = await _context.Inventorys
+            .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
+
+        if (item == null)
+            return Result<bool>.Failure("Inventory not found");
 
         _context.Inventorys.Remove(item);
         await _context.SaveChangesAsync();
+
+        return Result<bool>.Success(true);
     }
+
 
     public async Task<Result<bool>> CheckStockAsync(Guid cylinderId, int quantity)
     {
