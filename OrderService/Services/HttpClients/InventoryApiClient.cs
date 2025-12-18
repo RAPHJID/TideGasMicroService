@@ -41,18 +41,29 @@ namespace OrderService.Services.HttpClients
 
         public async Task<Result<bool>> DecreaseStockAsync(Guid cylinderId, int quantity)
         {
-            var response = await _http.PatchAsync(
-                $"api/Inventory/{cylinderId}/decrease/{quantity}",
-                null);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                var error = await response.Content.ReadAsStringAsync();
-                return Result<bool>.Failure(error);
-            }
+                var response = await _http.PatchAsync(
+                    $"api/Inventory/{cylinderId}/decrease/{quantity}",
+                    null);
 
-            return Result<bool>.Success(true);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    return Result<bool>.Failure(
+                        string.IsNullOrWhiteSpace(error)
+                            ? "Failed to decrease stock."
+                            : error);
+                }
+
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Failure($"InventoryService error: {ex.Message}");
+            }
         }
+
 
     }
 }
