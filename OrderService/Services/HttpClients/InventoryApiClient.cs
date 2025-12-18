@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using OrderService.Models.DTOs;
 using OrderService.Services.IServices;
+using InventoryService.Common;
 
 
 namespace OrderService.Services.HttpClients
@@ -16,32 +17,31 @@ namespace OrderService.Services.HttpClients
             Console.WriteLine($"[DEBUG] InventoryApiClient BaseAddress = {_http.BaseAddress}");
         }
 
-        public async Task<CylinderDto?> GetCylinderByIdAsync(Guid cylinderId)
-        {
-            try
-            {
-                return await _http.GetFromJsonAsync<CylinderDto>($"api/cylinders/{cylinderId}");
-            }
-            catch
-            {
-                return null; // prevents crashing OrderService
-            }
-        }
-
         public async Task<bool> CheckStockAsync(Guid cylinderId, int quantity)
         {
-            try
-            {
-                var response = await _http.GetFromJsonAsync<bool>(
-                    $"api/Inventory/{cylinderId}/check-stock?quantity={quantity}"
-                );
+            var response = await _http.GetAsync(
+                $"api/Inventory/{cylinderId}/check-stock?quantity={quantity}");
 
-                return response;
-            }
-            catch
-            {
-                return false; // fail-safe
-            }
+            if (!response.IsSuccessStatusCode)
+                return false;
+
+            return await response.Content.ReadFromJsonAsync<bool>();
         }
+
+        public async Task<Result<bool>> DecreaseStockAsync(Guid cylinderId, int quantity)
+        {
+            var response = await _http.PatchAsync(
+                $"api/Inventory/{cylinderId}/decrease/{quantity}",
+                null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                return Result<bool>.Failure(error);
+            }
+
+            return Result<bool>.Success(true);
+        }
+
     }
 }
