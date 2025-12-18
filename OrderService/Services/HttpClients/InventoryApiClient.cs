@@ -17,15 +17,16 @@ namespace OrderService.Services.HttpClients
             Console.WriteLine($"[DEBUG] InventoryApiClient BaseAddress = {_http.BaseAddress}");
         }
 
-        public async Task<bool> CheckStockAsync(Guid cylinderId, int quantity)
+        public async Task<Result<bool>> CheckStockAsync(Guid cylinderId, int quantity)
         {
             var response = await _http.GetAsync(
                 $"api/Inventory/{cylinderId}/check-stock?quantity={quantity}");
 
             if (!response.IsSuccessStatusCode)
-                return false;
-
-            return await response.Content.ReadFromJsonAsync<bool>();
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                return Result<bool>.Failure(error);
+            }
         }
 
         public async Task<Result<bool>> DecreaseStockAsync(Guid cylinderId, int quantity)

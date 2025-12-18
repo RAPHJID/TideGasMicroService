@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using InventoryService.Common;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Data;
 using OrderService.Models;
@@ -31,23 +32,22 @@ namespace OrderService.Services
         public async Task<IEnumerable<OrderReadDTO>> GetAllOrdersAsync()
         {
             var orders = await _context.Orders.ToListAsync();
-            var orderDtos = new List<OrderReadDTO>();
+            var result = new List<OrderReadDTO>();
 
             foreach (var order in orders)
             {
                 var dto = _mapper.Map<OrderReadDTO>(order);
 
-                // Fetch data from other microservices
                 var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-                var cylinder = await _inventoryClient.GetCylinderByIdAsync(order.CylinderId);
-
                 dto.CustomerName = customer?.Name ?? "Unknown";
-                dto.CylinderName = cylinder?.CylinderName ?? "Unknown";
 
-                orderDtos.Add(dto);
+                // Inventory name removed — Orders should not depend on Inventory data
+                dto.CylinderName = "N/A";
+
+                result.Add(dto);
             }
 
-            return orderDtos;
+            return result;
         }
 
         public async Task<OrderReadDTO?> GetOrderByIdAsync(Guid id)
@@ -58,26 +58,28 @@ namespace OrderService.Services
             var dto = _mapper.Map<OrderReadDTO>(order);
 
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-            var cylinder = await _inventoryClient.GetCylinderByIdAsync(order.CylinderId);
-
             dto.CustomerName = customer?.Name ?? "Unknown";
-            dto.CylinderName = cylinder?.CylinderName ?? "Unknown";
+
+            dto.CylinderName = "N/A";
 
             return dto;
         }
 
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
-            // Check stock with Inventory service
-            var inStock = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
+            // 1️⃣ Check stock
+            var stockCheck = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
 
-            // 🔍 DEBUG LINE - check what we are sending & receiving
-            Console.WriteLine($"DEBUG CHECK-STOCK | CylinderId: {dto.CylinderId} | Quantity: {dto.Quantity} | Result: {inStock}");
+            if (!stockCheck.IsSuccess)
+                throw new Exception(stockCheck.Error);
 
-            if (!inStock)
-                throw new Exception("Not enough stock available in InventoryService.");
+            // 2️⃣ Decrease stock
+            var decreaseResult = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity);
 
+            if (!decreaseResult.IsSuccess)
+                throw new Exception(decreaseResult.Error);
 
+            // 3️⃣ Create order
             var order = _mapper.Map<Order>(dto);
 
             if (Enum.TryParse<OrderStatus>(dto.Status, true, out var status))
@@ -91,10 +93,9 @@ namespace OrderService.Services
             var orderDto = _mapper.Map<OrderReadDTO>(order);
 
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-            var cylinder = await _inventoryClient.GetCylinderByIdAsync(order.CylinderId);
-
             orderDto.CustomerName = customer?.Name ?? "Unknown";
-            orderDto.CylinderName = cylinder?.CylinderName ?? "Unknown";
+
+            orderDto.CylinderName = "N/A";
 
             return orderDto;
         }
@@ -105,15 +106,13 @@ namespace OrderService.Services
             if (order == null)
                 return false;
 
-            if (Enum.TryParse<OrderStatus>(newStatus, true, out var status))
-            {
-                order.Status = status;
-                _context.Orders.Update(order);
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            if (!Enum.TryParse<OrderStatus>(newStatus, true, out var status))
+                return false;
 
-            return false;
+            order.Status = status;
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<bool> DeleteOrderAsync(Guid id)
@@ -124,8 +123,8 @@ namespace OrderService.Services
 
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
+
             return true;
         }
     }
 }
-
