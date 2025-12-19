@@ -20,8 +20,6 @@ public class InventoryController : ControllerBase
         var items = await _inventoryService.GetAllInventoriesAsync();
         return Ok(items);
     }
-
-
    
     [HttpGet("{cylinderId}")]
     public async Task<IActionResult> GetById(Guid cylinderId)
@@ -34,21 +32,21 @@ public class InventoryController : ControllerBase
         return Ok(result.Value);
     }
 
-
-
     [HttpGet("{cylinderId}/check-stock")]
     public async Task<IActionResult> CheckStock(
         Guid cylinderId,
         [FromQuery] int quantity)
     {
+        if (quantity <= 0)
+            return BadRequest("Quantity must be greater than zero.");
+
         var result = await _inventoryService.CheckStockAsync(cylinderId, quantity);
 
         if (!result.IsSuccess)
-            return BadRequest(result.Error);
+            return NotFound(result.Error);
 
         return Ok(result.Value);
     }
-
 
     [HttpPost]
     public async Task<IActionResult> Add([FromBody] AddUpdateInventory dto)
@@ -59,35 +57,29 @@ public class InventoryController : ControllerBase
         await _inventoryService.AddInventoryAsync(dto);
         return Ok(new { Message = "Inventory added successfully" });
     }
-    
-    [HttpPatch("{cylinderId}/increase")]
-    public async Task<IActionResult> IncreaseStock(
-        Guid cylinderId,
-        [FromQuery] int quantity)
+
+    [HttpPatch("{cylinderId}/increase/{quantity}")]
+    public async Task<IActionResult> IncreaseStock(Guid cylinderId, int quantity)
     {
         var result = await _inventoryService.IncreaseQuantityAsync(cylinderId, quantity);
 
         if (!result.IsSuccess)
             return BadRequest(result.Error);
 
-        return NoContent();
+        return Ok(true);
     }
 
-    [HttpPatch("{cylinderId}/decrease")]
-    public async Task<IActionResult> DecreaseStock(
-        Guid cylinderId,
-        [FromQuery] int quantity)
+
+    [HttpPatch("{cylinderId}/decrease/{quantity}")]
+    public async Task<IActionResult> DecreaseStock(Guid cylinderId, int quantity)
     {
         var result = await _inventoryService.DecreaseQuantityAsync(cylinderId, quantity);
 
         if (!result.IsSuccess)
             return BadRequest(result.Error);
 
-        return NoContent();
+        return Ok(true);
     }
-
-
-
 
     [HttpDelete("{cylinderId}")]
     public async Task<IActionResult> Delete(Guid cylinderId)

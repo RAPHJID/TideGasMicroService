@@ -95,6 +95,7 @@ public class InventorysService : InventoryInterface
 
 
 
+
     public async Task AddInventoryAsync(AddUpdateInventory dto)
     {
         var newItem = new Inventory
@@ -171,8 +172,6 @@ public class InventorysService : InventoryInterface
 
     public async Task<Result<bool>> CheckStockAsync(Guid cylinderId, int quantity)
     {
-        if (quantity <= 0)
-            return Result<bool>.Failure("Quantity must be greater than zero.");
 
         var item = await _context.Inventorys
             .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);

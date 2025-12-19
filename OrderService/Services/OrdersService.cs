@@ -67,19 +67,13 @@ namespace OrderService.Services
 
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
-            // 1️⃣ Check stock
-            var stockCheck = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
+            // Check stock first
+            var inStock = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
 
-            if (!stockCheck.IsSuccess)
-                throw new Exception(stockCheck.Error);
+            if (!inStock.IsSuccess)
+                throw new Exception("Not enough stock available.");
 
-            // 2️⃣ Decrease stock
-            var decreaseResult = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity);
-
-            if (!decreaseResult.IsSuccess)
-                throw new Exception(decreaseResult.Error);
-
-            // 3️⃣ Create order
+            // Create order locally
             var order = _mapper.Map<Order>(dto);
 
             if (Enum.TryParse<OrderStatus>(dto.Status, true, out var status))
@@ -90,15 +84,31 @@ namespace OrderService.Services
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
+            // Decrease stock in InventoryService
+            var decreaseResult = await _inventoryClient.DecreaseStockAsync(
+                dto.CylinderId,
+                dto.Quantity);
+
+            // if stock decrease fails → rollback order
+            if (!decreaseResult.IsSuccess)
+            {
+                _context.Orders.Remove(order);
+                await _context.SaveChangesAsync();
+
+                throw new Exception($"Stock decrease failed: {decreaseResult.Error}");
+            }
+
+            // Build response DTO
             var orderDto = _mapper.Map<OrderReadDTO>(order);
 
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
+          
             orderDto.CustomerName = customer?.Name ?? "Unknown";
-
-            orderDto.CylinderName = "N/A";
-
+            
             return orderDto;
         }
+
+
 
         public async Task<bool> UpdateOrderStatusAsync(Guid id, string newStatus)
         {
