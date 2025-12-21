@@ -2,9 +2,8 @@
 {
     public class CylinderDto
     {
-        public Guid cylinderId { get; set; }
-        public string? CylinderName { get; set; }
-        public int QuantityAvailable { get; set; }
-        public DateTime LastUpdated { get; set; }
+        public Guid Id { get; set; }
+        public string? Size { get; set; }
+        public string Brand { get; set; } = string.Empty;
     }
 }
