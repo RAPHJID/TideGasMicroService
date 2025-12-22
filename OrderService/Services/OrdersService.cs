@@ -39,9 +39,9 @@ namespace OrderService.Services
                 var dto = _mapper.Map<OrderReadDTO>(order);
 
                 var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-                dto.CustomerName = customer?.Name ?? "Unknown";
+                dto.CustomerName = customer?.FullName ?? "Unknown";
 
-                // Inventory name removed — Orders should not depend on Inventory data
+                // Orders should NOT depend on Inventory data
                 dto.CylinderName = "N/A";
 
                 result.Add(dto);
@@ -53,12 +53,13 @@ namespace OrderService.Services
         public async Task<OrderReadDTO?> GetOrderByIdAsync(Guid id)
         {
             var order = await _context.Orders.FindAsync(id);
-            if (order == null) return null;
+            if (order == null)
+                return null;
 
             var dto = _mapper.Map<OrderReadDTO>(order);
 
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-            dto.CustomerName = customer?.Name ?? "Unknown";
+            dto.CustomerName = customer?.FullName ?? "Unknown";
 
             dto.CylinderName = "N/A";
 
@@ -67,29 +68,31 @@ namespace OrderService.Services
 
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
-            // Check stock first
-            var inStock = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
+            // 1️⃣ Check stock
+            var stockResult = await _inventoryClient.CheckStockAsync(
+                dto.CylinderId,
+                dto.Quantity);
 
-            if (!inStock.IsSuccess)
-                throw new Exception("Not enough stock available.");
+            if (!stockResult.IsSuccess)
+                throw new Exception(stockResult.Error ?? "Insufficient stock.");
 
-            // Create order locally
+            // 2️⃣ Create order locally
             var order = _mapper.Map<Order>(dto);
 
-            if (Enum.TryParse<OrderStatus>(dto.Status, true, out var status))
-                order.Status = status;
-            else
-                order.Status = OrderStatus.Pending;
+            if (!Enum.TryParse(dto.Status, true, out OrderStatus status))
+                status = OrderStatus.Pending;
+
+            order.Status = status;
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            // Decrease stock in InventoryService
+            // 3️⃣ Decrease stock
             var decreaseResult = await _inventoryClient.DecreaseStockAsync(
                 dto.CylinderId,
                 dto.Quantity);
 
-            // if stock decrease fails → rollback order
+            // Rollback if inventory fails
             if (!decreaseResult.IsSuccess)
             {
                 _context.Orders.Remove(order);
@@ -98,13 +101,14 @@ namespace OrderService.Services
                 throw new Exception($"Stock decrease failed: {decreaseResult.Error}");
             }
 
-            // Build response DTO
+            // 4️⃣ Build response
             var orderDto = _mapper.Map<OrderReadDTO>(order);
 
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-          
-            orderDto.CustomerName = customer?.Name ?? "Unknown";
-            
+            orderDto.CustomerName = customer?.FullName ?? "Unknown";
+
+            orderDto.CylinderName = "N/A";
+
             return orderDto;
         }
 
