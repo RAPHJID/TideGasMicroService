@@ -16,17 +16,21 @@ namespace OrderService.Services
         private readonly IMapper _mapper;
         private readonly IInventoryApiClient _inventoryClient;
         private readonly ICustomerApiClient _customerClient;
+        private readonly ICylinderApiClient _cylinderClient;
 
         public OrdersService(
             AppDbContext context,
             IMapper mapper,
             IInventoryApiClient inventoryClient,
-            ICustomerApiClient customerClient)
+            ICustomerApiClient customerClient,
+            ICylinderApiClient cylinderClient)
+            
         {
             _context = context;
             _mapper = mapper;
             _inventoryClient = inventoryClient;
             _customerClient = customerClient;
+            _cylinderClient = cylinderClient;
         }
 
         public async Task<IEnumerable<OrderReadDTO>> GetAllOrdersAsync()
@@ -41,8 +45,14 @@ namespace OrderService.Services
                 var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
                 dto.CustomerName = customer?.FullName ?? "Unknown";
 
+                var cylinder = await _cylinderClient.GetByIdAsync(order.CylinderId);
+
+                dto.CylinderName = cylinder == null
+                    ? "Unknown"
+                    : $"{cylinder.Brand} {cylinder.Size}";
+
                 // Orders should NOT depend on Inventory data
-                dto.CylinderName = "N/A";
+                //dto.CylinderName = "N/A";
 
                 result.Add(dto);
             }
@@ -61,7 +71,12 @@ namespace OrderService.Services
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
             dto.CustomerName = customer?.FullName ?? "Unknown";
 
-            dto.CylinderName = "N/A";
+            var cylinder = await _cylinderClient.GetByIdAsync(order.CylinderId);
+
+            dto.CylinderName = cylinder == null
+                ? "Unknown"
+                : $"{cylinder.Brand} {cylinder.Size}";
+            //dto.CylinderName = "N/A";
 
             return dto;
         }
@@ -106,8 +121,13 @@ namespace OrderService.Services
 
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
             orderDto.CustomerName = customer?.FullName ?? "Unknown";
+            var cylinder = await _cylinderClient.GetByIdAsync(order.CylinderId);
 
-            orderDto.CylinderName = "N/A";
+            orderDto.CylinderName = cylinder == null
+                ? "Unknown"
+                : $"{cylinder.Brand} {cylinder.Size}";
+
+            //orderDto.CylinderName = "N/A";
 
             return orderDto;
         }
