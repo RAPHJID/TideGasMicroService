@@ -42,7 +42,8 @@ namespace TransactionService.Services
 
             var json = await response.Content.ReadAsStringAsync();
             var cylinder = JsonSerializer.Deserialize<CylinderDto>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return cylinder?.Name;
+            if(cylinder == null) return null;
+            return cylinder.Size == null ? cylinder.Name : $"{cylinder.Name} {cylinder.Size}";
         }
 
         private async Task<TransactionResponseDTO> MapToDtoAsync(Transaction entity)
@@ -88,7 +89,8 @@ namespace TransactionService.Services
                 Id = Guid.NewGuid(),
                 CustomerId = dto.CustomerId,
                 CylinderId = dto.CylinderId,
-                Amount = dto.Amount
+                Amount = dto.Amount,
+                Date = dto.Date,
             };
 
             _context.Transactions.Add(entity);
@@ -139,5 +141,8 @@ namespace TransactionService.Services
 
         [JsonPropertyName("brand")]
         public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("size")]
+        public string? Size { get; set; } 
     }
 }

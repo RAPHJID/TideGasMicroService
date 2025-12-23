@@ -4,6 +4,7 @@
     {
         public Guid CustomerId { get; set; }
         public Guid CylinderId { get; set; }
+        public DateTime Date { get; set; } = DateTime.UtcNow;
         public decimal Amount { get; set; }
     }
 }
