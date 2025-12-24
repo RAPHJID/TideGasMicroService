@@ -14,7 +14,7 @@ namespace TransactionService.Models
         public Guid CylinderId { get; set; }
 
         [Required]
-        public DateTime Date { get; set; }
+        public DateTime Date { get; set; } 
 
         [Required]
         public decimal Amount { get; set; }

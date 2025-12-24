@@ -90,7 +90,7 @@ namespace TransactionService.Services
                 CustomerId = dto.CustomerId,
                 CylinderId = dto.CylinderId,
                 Amount = dto.Amount,
-                Date = dto.Date,
+                Date = DateTime.UtcNow,
             };
 
             _context.Transactions.Add(entity);
