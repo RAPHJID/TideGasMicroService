@@ -64,6 +64,22 @@ namespace OrderService.Services.HttpClients
             }
         }
 
+        public async Task<Result<bool>> IncreaseStockAsync(Guid cylinderId, int quantity)
+        {
+            var response = await _http.PatchAsync(
+                $"api/Inventory/{cylinderId}/increase/{quantity}",
+                null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                return Result<bool>.Failure(error);
+            }
+
+            return Result<bool>.Success(true);
+        }
+
+
 
     }
 }

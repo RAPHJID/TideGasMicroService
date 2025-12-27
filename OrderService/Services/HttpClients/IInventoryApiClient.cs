@@ -7,7 +7,9 @@ namespace OrderService.Services.IServices
         {
             Task<Result<bool>> CheckStockAsync(Guid cylinderId, int quantity);
             Task<Result<bool>> DecreaseStockAsync(Guid cylinderId, int quantity);
-        }
+
+            Task<Result<bool>> IncreaseStockAsync (Guid cylinderId, int quantity);
+    }
 
     
 
