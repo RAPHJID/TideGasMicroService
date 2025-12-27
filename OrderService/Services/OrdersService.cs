@@ -17,13 +17,16 @@ namespace OrderService.Services
         private readonly IInventoryApiClient _inventoryClient;
         private readonly ICustomerApiClient _customerClient;
         private readonly ICylinderApiClient _cylinderClient;
+        private readonly ITransactionApiClient _transactionClient;
+
 
         public OrdersService(
             AppDbContext context,
             IMapper mapper,
             IInventoryApiClient inventoryClient,
             ICustomerApiClient customerClient,
-            ICylinderApiClient cylinderClient)
+            ICylinderApiClient cylinderClient,
+            ITransactionApiClient transactionClient)
             
         {
             _context = context;
@@ -31,6 +34,7 @@ namespace OrderService.Services
             _inventoryClient = inventoryClient;
             _customerClient = customerClient;
             _cylinderClient = cylinderClient;
+            _transactionClient = transactionClient;
         }
 
         public async Task<IEnumerable<OrderReadDTO>> GetAllOrdersAsync()
@@ -84,52 +88,46 @@ namespace OrderService.Services
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
             // 1️⃣ Check stock
-            var stockResult = await _inventoryClient.CheckStockAsync(
-                dto.CylinderId,
-                dto.Quantity);
+            var stockCheck = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
+            if (!stockCheck.IsSuccess)
+                throw new Exception(stockCheck.Error);
 
-            if (!stockResult.IsSuccess)
-                throw new Exception(stockResult.Error ?? "Insufficient stock.");
-
-            // 2️⃣ Create order locally
+            // 2️⃣ Save order
             var order = _mapper.Map<Order>(dto);
-
-            if (!Enum.TryParse(dto.Status, true, out OrderStatus status))
-                status = OrderStatus.Pending;
-
-            order.Status = status;
+            order.Status = OrderStatus.Pending;
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
             // 3️⃣ Decrease stock
-            var decreaseResult = await _inventoryClient.DecreaseStockAsync(
-                dto.CylinderId,
-                dto.Quantity);
-
-            // Rollback if inventory fails
-            if (!decreaseResult.IsSuccess)
+            var decrease = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity);
+            if (!decrease.IsSuccess)
             {
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
-
-                throw new Exception($"Stock decrease failed: {decreaseResult.Error}");
+                throw new Exception("Stock decrease failed");
             }
 
-            // 4️⃣ Build response
-            var orderDto = _mapper.Map<OrderReadDTO>(order);
+            // 4️⃣ Create transaction
+            var transaction = new CreateTransactionDTO
+            {
+                CustomerId = dto.CustomerId,
+                CylinderId = dto.CylinderId,
+                Amount = dto.TotalPrice
+            };
 
-            var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-            orderDto.CustomerName = customer?.FullName ?? "Unknown";
-            var cylinder = await _cylinderClient.GetByIdAsync(order.CylinderId);
+            var trxResult = await _transactionClient.CreateTransactionAsync(transaction);
 
-            orderDto.CylinderName = cylinder == null
-                ? "Unknown"
-                : $"{cylinder.Brand} {cylinder.Size}";
+            if (!trxResult.IsSuccess)
+            {
+                // rollback stock + order
+                await _inventoryClient.IncreaseStockAsync(dto.CylinderId, dto.Quantity);
+                _context.Orders.Remove(order);
+                await _context.SaveChangesAsync();
+                throw new Exception("Transaction creation failed");
+            }
 
-            //orderDto.CylinderName = "N/A";
-
-            return orderDto;
+            return _mapper.Map<OrderReadDTO>(order);
         }
 
 
