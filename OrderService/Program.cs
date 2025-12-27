@@ -56,6 +56,11 @@ builder.Services.AddHttpClient<ICylinderApiClient, CylinderApiClient>(client =>
     client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:CylinderAPI"]);
 });
 
+builder.Services.AddHttpClient<ITransactionApiClient, TransactionApiClient>(c =>
+{
+    c.BaseAddress = new Uri(builder.Configuration["ServiceUrls:TransactionAPI"]);
+});
+
 
 // Typed HTTP client for communication with InventoryService
 builder.Services.AddHttpClient<IInventoryApiClient, InventoryApiClient>(client =>
