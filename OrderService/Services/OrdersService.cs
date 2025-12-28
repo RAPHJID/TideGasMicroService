@@ -87,48 +87,58 @@ namespace OrderService.Services
 
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
-            // 1️⃣ Check stock
+            // 1. Check stock first
             var stockCheck = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
             if (!stockCheck.IsSuccess)
-                throw new Exception(stockCheck.Error);
+                throw new Exception("Not enough stock available.");
 
-            // 2️⃣ Save order
+            // 2. Create order locally
             var order = _mapper.Map<Order>(dto);
             order.Status = OrderStatus.Pending;
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            // 3️⃣ Decrease stock
-            var decrease = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity);
-            if (!decrease.IsSuccess)
+            // 3. Decrease inventory
+            var decreaseResult = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity);
+            if (!decreaseResult.IsSuccess)
             {
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
-                throw new Exception("Stock decrease failed");
+                throw new Exception("Stock decrease failed.");
             }
 
-            // 4️⃣ Create transaction
-            var transaction = new CreateTransactionDTO
+            // 4. Create transaction
+            var transactionDto = new CreateTransactionDTO
             {
-                CustomerId = dto.CustomerId,
-                CylinderId = dto.CylinderId,
-                Amount = dto.TotalPrice
+                CustomerId = order.CustomerId,
+                CylinderId = order.CylinderId,
+                Amount = order.TotalPrice
             };
 
-            var trxResult = await _transactionClient.CreateTransactionAsync(transaction);
+            var transactionResult = await _transactionClient.CreateTransactionAsync(transactionDto);
 
-            if (!trxResult.IsSuccess)
+            if (!transactionResult.IsSuccess)
             {
-                // rollback stock + order
-                await _inventoryClient.IncreaseStockAsync(dto.CylinderId, dto.Quantity);
+                // ROLLBACK EVERYTHING
+                await _inventoryClient.IncreaseStockAsync(order.CylinderId, order.Quantity);
+
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
-                throw new Exception("Transaction creation failed");
+
+                throw new Exception("Transaction creation failed.");
             }
 
-            return _mapper.Map<OrderReadDTO>(order);
+            // 5. Return response
+            var result = _mapper.Map<OrderReadDTO>(order);
+
+            var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
+            result.CustomerName = customer?.FullName ?? "Unknown";
+
+            result.CylinderName = "N/A";
+            return result;
         }
+
 
 
 

@@ -14,15 +14,16 @@ namespace OrderService.Services.HttpClients
 
         public async Task<Result<bool>> CreateTransactionAsync(CreateTransactionDTO dto)
         {
-            var resp = await _http.PostAsJsonAsync("api/Transaction", dto);
+            var response = await _http.PostAsJsonAsync("/api/Transaction", dto);
 
-            if (!resp.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
             {
-                var error = await resp.Content.ReadAsStringAsync();
+                var error = await response.Content.ReadAsStringAsync();
                 return Result<bool>.Failure(error);
             }
 
             return Result<bool>.Success(true);
         }
+
     }
 }
