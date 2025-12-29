@@ -23,7 +23,7 @@ namespace OrderService.Services.HttpClients
             try
             {
                 var response = await _http.GetAsync(
-                    $"api/inventory/{cylinderId}/check-stock?quantity={quantity}");
+                    $"/api/inventory/{cylinderId}/check-stock?quantity={quantity}");
 
                 if (!response.IsSuccessStatusCode)
                     return Result<bool>.Failure("Failed to check stock from InventoryService.");
@@ -44,7 +44,7 @@ namespace OrderService.Services.HttpClients
             try
             {
                 var response = await _http.PatchAsync(
-                    $"api/Inventory/{cylinderId}/decrease/{quantity}",
+                    $"/api/Inventory/{cylinderId}/decrease/{quantity}",
                     null);
 
                 if (!response.IsSuccessStatusCode)
@@ -67,7 +67,7 @@ namespace OrderService.Services.HttpClients
         public async Task<Result<bool>> IncreaseStockAsync(Guid cylinderId, int quantity)
         {
             var response = await _http.PatchAsync(
-                $"api/Inventory/{cylinderId}/increase/{quantity}",
+                $"/api/Inventory/{cylinderId}/increase/{quantity}",
                 null);
 
             if (!response.IsSuccessStatusCode)

@@ -16,7 +16,7 @@ namespace OrderService.Services.HttpClients
 
         public async Task<CustomerDto?> GetCustomerByIdAsync(Guid id)
         {
-            var response = await _httpClient.GetAsync($"api/Customer/{id}");
+            var response = await _httpClient.GetAsync($"/api/Customer/{id}");
 
             if (!response.IsSuccessStatusCode)
                 return null;

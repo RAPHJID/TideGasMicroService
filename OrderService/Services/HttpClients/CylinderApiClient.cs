@@ -16,7 +16,7 @@ namespace OrderService.Services.HttpClients
 
         public async Task<CylinderDto?> GetByIdAsync(Guid cylinderId)
         {
-            var response = await _http.GetAsync($"api/Cylinder/{cylinderId}");
+            var response = await _http.GetAsync($"/api/Cylinder/{cylinderId}");
 
             if (response.StatusCode == HttpStatusCode.NotFound)
                 return null;
