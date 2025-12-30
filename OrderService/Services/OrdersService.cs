@@ -108,7 +108,6 @@ namespace OrderService.Services
                 throw new Exception("Stock decrease failed.");
             }
 
-            // 4. Create transaction
             var transactionDto = new CreateTransactionDTO
             {
                 CustomerId = order.CustomerId,
@@ -120,14 +119,21 @@ namespace OrderService.Services
 
             if (!transactionResult.IsSuccess)
             {
-                // ROLLBACK EVERYTHING
-                await _inventoryClient.IncreaseStockAsync(order.CylinderId, order.Quantity);
+                var rollback = await _inventoryClient.IncreaseStockAsync(order.CylinderId, order.Quantity);
+
+                if (!rollback.IsSuccess)
+                    throw new Exception("CRITICAL: Inventory rollback failed → system is inconsistent.");
 
                 _context.Orders.Remove(order);
                 await _context.SaveChangesAsync();
 
-                throw new Exception("Transaction creation failed.");
+                throw new Exception($"Transaction creation failed: {transactionResult.Error}");
             }
+
+
+            order.TransactionId = transactionResult.Value.Id;
+            await _context.SaveChangesAsync();
+
 
             // 5. Return response
             var result = _mapper.Map<OrderReadDTO>(order);
