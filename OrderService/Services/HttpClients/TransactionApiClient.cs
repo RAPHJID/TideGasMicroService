@@ -1,5 +1,6 @@
 ﻿using InventoryService.Common;
 using OrderService.Models.DTOs;
+using System.Text.Json;
 
 namespace OrderService.Services.HttpClients
 {
@@ -12,20 +13,25 @@ namespace OrderService.Services.HttpClients
             _http = http;
         }
 
-        public async Task<Result<TransactionResponseDTO>> CreateTransactionAsync(CreateUpdateTransactionDTO dto)
+        public async Task<Result<TransactionReadDTO>> CreateTransactionAsync(CreateUpdateTransactionDTO dto)
         {
             var response = await _http.PostAsJsonAsync("api/Transaction", dto);
 
+            var body = await response.Content.ReadAsStringAsync();
+
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                return Result<TransactionResponseDTO>.Failure(error);
+                return Result<TransactionReadDTO>.Failure(
+                    $"Transaction API error ({(int)response.StatusCode}): {body}");
             }
 
-            var created = await response.Content.ReadFromJsonAsync<TransactionResponseDTO>();
+            var transaction = JsonSerializer.Deserialize<TransactionReadDTO>(
+                body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-            return Result<TransactionResponseDTO>.Success(created!);
+            return Result<TransactionReadDTO>.Success(transaction!);
         }
+
 
 
 
