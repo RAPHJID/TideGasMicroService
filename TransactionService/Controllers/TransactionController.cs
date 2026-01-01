@@ -6,11 +6,11 @@ namespace TransactionService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TransactionsController : ControllerBase
+    public class TransactionController : ControllerBase
     {
         private readonly ITransactionService _service;
 
-        public TransactionsController(ITransactionService service)
+        public TransactionController(ITransactionService service)
         {
             _service = service;
         }
