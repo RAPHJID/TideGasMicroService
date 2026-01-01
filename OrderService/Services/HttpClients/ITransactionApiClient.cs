@@ -5,7 +5,6 @@ namespace OrderService.Services.HttpClients
 {
     public interface ITransactionApiClient
     {
-        Task<Result<TransactionResponseDTO>> CreateTransactionAsync(CreateTransactionDTO dto);
-
+        Task<Result<TransactionResponseDTO>> CreateTransactionAsync(CreateUpdateTransactionDTO dto);
     }
 }

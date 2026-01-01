@@ -87,62 +87,56 @@ namespace OrderService.Services
 
         public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
         {
-            // 1. Check stock first
-            var stockCheck = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
-            if (!stockCheck.IsSuccess)
-                throw new Exception("Not enough stock available.");
+            await using var dbTransaction = await _context.Database.BeginTransactionAsync();
 
-            // 2. Create order locally
-            var order = _mapper.Map<Order>(dto);
-            order.Status = OrderStatus.Pending;
-
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            // 3. Decrease inventory
-            var decreaseResult = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity);
-            if (!decreaseResult.IsSuccess)
+            try
             {
-                _context.Orders.Remove(order);
-                await _context.SaveChangesAsync();
-                throw new Exception("Stock decrease failed.");
-            }
+                // 1. Check stock
+                var stockCheck = await _inventoryClient.CheckStockAsync(dto.CylinderId, dto.Quantity);
+                if (!stockCheck.IsSuccess)
+                    throw new Exception("Not enough stock available.");
 
-            var transactionDto = new CreateTransactionDTO
-            {
-                CustomerId = order.CustomerId,
-                CylinderId = order.CylinderId,
-                Amount = order.TotalPrice
-            };
+                // 2. Create order (not committed yet)
+                var order = _mapper.Map<Order>(dto);
+                order.Status = OrderStatus.Pending;
 
-            var transactionResult = await _transactionClient.CreateTransactionAsync(transactionDto);
-
-            if (!transactionResult.IsSuccess)
-            {
-                var rollback = await _inventoryClient.IncreaseStockAsync(order.CylinderId, order.Quantity);
-
-                if (!rollback.IsSuccess)
-                    throw new Exception("CRITICAL: Inventory rollback failed → system is inconsistent.");
-
-                _context.Orders.Remove(order);
+                _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
-                throw new Exception($"Transaction creation failed: {transactionResult.Error}");
+                // 3. Decrease stock
+                var decreaseResult = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity);
+                if (!decreaseResult.IsSuccess)
+                    throw new Exception("Stock decrease failed.");
+
+                // 4. Create transaction
+                var transactionDto = new CreateUpdateTransactionDTO
+                {
+                    CustomerId = order.CustomerId,
+                    CylinderId = order.CylinderId,
+                    Amount = order.TotalPrice
+                };
+
+                var transactionResult = await _transactionClient.CreateTransactionAsync(transactionDto);
+                if (!transactionResult.IsSuccess)
+                    throw new Exception($"Transaction creation failed: {transactionResult.Error}");
+
+                // 5. Finalize order
+                order.Status = OrderStatus.Completed;
+                await _context.SaveChangesAsync();
+
+                await dbTransaction.CommitAsync();
+
+                var result = _mapper.Map<OrderReadDTO>(order);
+                var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
+                result.CustomerName = customer?.FullName ?? "Unknown";
+
+                return result;
             }
-
-
-            order.TransactionId = transactionResult.Value.Id;
-            await _context.SaveChangesAsync();
-
-
-            // 5. Return response
-            var result = _mapper.Map<OrderReadDTO>(order);
-
-            var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
-            result.CustomerName = customer?.FullName ?? "Unknown";
-
-            result.CylinderName = "N/A";
-            return result;
+            catch
+            {
+                await dbTransaction.RollbackAsync();
+                throw;
+            }
         }
 
 

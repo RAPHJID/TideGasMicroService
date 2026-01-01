@@ -1,6 +1,6 @@
 ﻿namespace OrderService.Models.DTOs
 {
-    public class CreateTransactionDTO
+    public class CreateUpdateTransactionDTO
     {
         public Guid CustomerId { get; set; }
         public Guid CylinderId { get; set; }

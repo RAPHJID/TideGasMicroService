@@ -12,9 +12,9 @@ namespace OrderService.Services.HttpClients
             _http = http;
         }
 
-        public async Task<Result<TransactionResponseDTO>> CreateTransactionAsync(CreateTransactionDTO dto)
+        public async Task<Result<TransactionResponseDTO>> CreateTransactionAsync(CreateUpdateTransactionDTO dto)
         {
-            var response = await _http.PostAsJsonAsync("/api/Transaction", dto);
+            var response = await _http.PostAsJsonAsync("api/Transaction", dto);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -22,16 +22,13 @@ namespace OrderService.Services.HttpClients
                 return Result<TransactionResponseDTO>.Failure(error);
             }
 
-            var transaction =
-                await response.Content.ReadFromJsonAsync<TransactionResponseDTO>();
+            var created = await response.Content.ReadFromJsonAsync<TransactionResponseDTO>();
 
-            if (transaction is null)
-                return Result<TransactionResponseDTO>.Failure("Transaction returned null.");
-
-            return Result<TransactionResponseDTO>.Success(transaction);
+            return Result<TransactionResponseDTO>.Success(created!);
         }
 
-        
+
+
 
 
 
