@@ -118,7 +118,6 @@ namespace OrderService.Services
 
                 var transactionResult = await _transactionClient.CreateTransactionAsync(transactionDto);
                 if (!transactionResult.IsSuccess)
-                    Console.WriteLine(transactionResult.Error);
                     throw new Exception($"Transaction creation failed: {transactionResult.Error}");
 
                 // 5. Finalize order
