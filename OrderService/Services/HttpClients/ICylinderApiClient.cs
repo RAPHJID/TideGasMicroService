@@ -4,6 +4,7 @@ namespace OrderService.Services.HttpClients
 {
     public interface ICylinderApiClient
     {
-        Task<CylinderDto?> GetByIdAsync(Guid cylinderId);
+        Task<CylinderDto?> GetCylinderByIdAsync(Guid id);
+
     }
 }

@@ -49,7 +49,7 @@ namespace OrderService.Services
                 var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
                 dto.CustomerName = customer?.FullName ?? "Unknown";
 
-                var cylinder = await _cylinderClient.GetByIdAsync(order.CylinderId);
+                var cylinder = await _cylinderClient.GetCylinderByIdAsync(order.CylinderId);
 
                 dto.CylinderName = cylinder == null
                     ? "Unknown"
@@ -75,7 +75,7 @@ namespace OrderService.Services
             var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
             dto.CustomerName = customer?.FullName ?? "Unknown";
 
-            var cylinder = await _cylinderClient.GetByIdAsync(order.CylinderId);
+            var cylinder = await _cylinderClient.GetCylinderByIdAsync(order.CylinderId);
 
             dto.CylinderName = cylinder == null
                 ? "Unknown"
@@ -128,7 +128,11 @@ namespace OrderService.Services
 
                 var result = _mapper.Map<OrderReadDTO>(order);
                 var customer = await _customerClient.GetCustomerByIdAsync(order.CustomerId);
+                var cylinder = await _cylinderClient.GetCylinderByIdAsync(order.CylinderId);
                 result.CustomerName = customer?.FullName ?? "Unknown";
+                result.CylinderName = cylinder == null
+                    ? "Unknown"
+                    : $"{cylinder.Brand} {cylinder.Size}";
 
                 return result;
             }

@@ -1,7 +1,8 @@
-﻿using System.Net;
-using System.Net.Http.Json;
-using OrderService.Models.DTOs;
+﻿using OrderService.Models.DTOs;
 using OrderService.Services.IServices;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace OrderService.Services.HttpClients
 {
@@ -14,16 +15,18 @@ namespace OrderService.Services.HttpClients
             _http = http;
         }
 
-        public async Task<CylinderDto?> GetByIdAsync(Guid cylinderId)
+        public async Task<CylinderDto?> GetCylinderByIdAsync(Guid id)
         {
-            var response = await _http.GetAsync($"/api/Cylinder/{cylinderId}");
+            var response = await _http.GetAsync($"api/Cylinder/{id}");
 
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            if (!response.IsSuccessStatusCode)
                 return null;
 
-            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
 
-            return await response.Content.ReadFromJsonAsync<CylinderDto>();
+            return JsonSerializer.Deserialize<CylinderDto>(
+                body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
     }
 }
