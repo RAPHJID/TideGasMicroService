@@ -58,6 +58,17 @@ builder.Services.AddHttpClient<ITransactionApiClient, TransactionApiClient>(c =>
 builder.Services.AddHttpClient<ICylinderApiClient, CylinderApiClient>(c =>
     c.BaseAddress = new Uri(RequireUrl("ServiceUrls:CylinderAPI")));
 
+//cors
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:5174")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 
 var app = builder.Build();
 
@@ -71,6 +82,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("ReactPolicy");//cors
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
