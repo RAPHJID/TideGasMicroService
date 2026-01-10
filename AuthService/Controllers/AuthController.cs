@@ -1,4 +1,5 @@
-﻿using AuthService.Models;
+﻿using AuthService.Helpers;
+using AuthService.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
