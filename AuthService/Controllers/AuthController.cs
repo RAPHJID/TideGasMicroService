@@ -1,49 +1,64 @@
-﻿using AuthService.Helpers;
-using AuthService.Models;
+﻿using AuthService.Models;
 using AuthService.Models.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
-
-[ApiController]
-[Route("api/auth")]
-public class AuthController : ControllerBase
+namespace AuthService.Controllers
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IConfiguration _config;
-
-    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration config)
+    [ApiController]
+    [Route("api/auth")]
+    public class AuthController : ControllerBase
     {
-        _userManager = userManager;
-        _config = config;
-    }
+        private readonly UserManager<ApplicationUser> _userManager;
 
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
-    {
-        var user = new ApplicationUser
+        public AuthController(UserManager<ApplicationUser> userManager)
         {
-            UserName = dto.Email,
-            Email = dto.Email,
-            FullName = dto.FullName
-        };
+            _userManager = userManager;
+        }
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
+        // ================= REGISTER =================
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegisterDto dto)
+        {
+            // 1️ Check if user exists
+            var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+            if (existingUser != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "User already exists"
+                });
+            }
 
-        return Ok("User registered");
-    }
+            // 2️ Create user object
+            var user = new ApplicationUser
+            {
+                UserName = dto.Email,
+                Email = dto.Email,
+                FullName = dto.FullName
+            };
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginDto dto)
-    {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
-        if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-            return Unauthorized();
+            // 3️ Create user in DB
+            var result = await _userManager.CreateAsync(user, dto.Password);
 
-        var token = JwtHelper.GenerateToken(user, _config);
-        return Ok(new { token });
+            if (!result.Succeeded)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    errors = result.Errors.Select(e => e.Description)
+                });
+            }
+
+            // 4️ Success
+            return Ok(new
+            {
+                success = true,
+                message = "User registered successfully"
+            });
+        }
     }
 }
+
+
