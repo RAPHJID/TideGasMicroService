@@ -12,9 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ======================= DATABASE =======================
 builder.Services.AddDbContext<AuthDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<JwtTokenGenerator>();
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
 // ======================= IDENTITY =======================
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -27,12 +28,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AuthDbContext>()
 .AddDefaultTokenProviders();
 
+// ======================= JWT TOKEN GENERATOR =======================
+builder.Services.AddScoped<JwtTokenGenerator>();
+
 // ======================= JWT AUTH =======================
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
@@ -47,9 +47,14 @@ builder.Services.AddAuthentication(options =>
 
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-        )
+        ),
+
+        ClockSkew = TimeSpan.Zero // ?? important: no silent expiry grace
     };
 });
+
+// ======================= AUTHORIZATION =======================
+builder.Services.AddAuthorization();
 
 // ======================= CONTROLLERS =======================
 builder.Services.AddControllers();
@@ -64,7 +69,6 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    // ?? JWT Support in Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -90,9 +94,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
-// ======================= AUTHORIZATION =======================
-builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
