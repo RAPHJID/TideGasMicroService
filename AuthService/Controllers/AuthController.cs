@@ -2,6 +2,7 @@
 using AuthService.Models.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using AuthService.Helpers;
 
 namespace AuthService.Controllers
 {
@@ -10,10 +11,14 @@ namespace AuthService.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-
-        public AuthController(UserManager<ApplicationUser> userManager)
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly JwtTokenGenerator _tokenGenerator;
+        public AuthController(UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager, JwtTokenGenerator tokenGenerator)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
+            _tokenGenerator = tokenGenerator;
         }
 
         // ================= REGISTER =================
@@ -56,6 +61,37 @@ namespace AuthService.Controllers
             {
                 success = true,
                 message = "User registered successfully"
+            });
+        }
+
+        // ================= LOGIN =================
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto dto)
+        {
+            // 1️. Find user
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+                return Unauthorized("Invalid credentials");
+
+            // 2️. Check password
+            var passwordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
+            if (!passwordValid)
+                return Unauthorized("Invalid credentials");
+
+            // 3️. Generate JWT
+            var token = await _tokenGenerator.GenerateToken(user);
+
+            // 4️. Return token
+            return Ok(new
+            {
+                token,
+                expiresIn = 7200,
+                user = new
+                {
+                    user.Id,
+                    user.Email,
+                    user.FullName
+                }
             });
         }
     }

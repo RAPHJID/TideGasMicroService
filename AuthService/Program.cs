@@ -1,4 +1,5 @@
 using AuthService.Data;
+using AuthService.Helpers;
 using AuthService.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 // ======================= DATABASE =======================
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<JwtTokenGenerator>();
 
 // ======================= IDENTITY =======================
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
