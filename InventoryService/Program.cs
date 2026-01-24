@@ -1,12 +1,15 @@
-﻿using System;
-using System.Net.Http;
-using InventoryService.Data;
+﻿using InventoryService.Data;
 using InventoryService.Profiles;
 using InventoryService.Services;
-using InventoryService.Services.IService;
 using InventoryService.Services.HttpClients;
+using InventoryService.Services.IService;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System;
+using System.Net.Http;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +69,25 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSettings["Key"]!)
+            )
+        };
+    });
 
 // === Build the App ===
 var app = builder.Build();
