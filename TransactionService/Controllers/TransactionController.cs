@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TransactionService.Models.DTOs;
 using TransactionService.Services.IServices;
 
@@ -6,7 +7,8 @@ namespace TransactionService.Controllers
 {
     [ApiController]
     [Route("api/Transaction")]
-    
+
+    [Authorize]
     public class TransactionController : ControllerBase
     {
         private readonly ITransactionService _service;

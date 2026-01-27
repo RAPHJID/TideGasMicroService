@@ -1,5 +1,6 @@
 ﻿using InventoryService.Models.DTOs;
 using InventoryService.Services.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -14,13 +15,15 @@ public class InventoryController : ControllerBase
     }
 
     // GET: api/Inventory
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         var items = await _inventoryService.GetAllInventoriesAsync();
         return Ok(items);
     }
-   
+
+    [AllowAnonymous]
     [HttpGet("{cylinderId}")]
     public async Task<IActionResult> GetById(Guid cylinderId)
     {
@@ -32,6 +35,7 @@ public class InventoryController : ControllerBase
         return Ok(result.Value);
     }
 
+    [AllowAnonymous]
     [HttpGet("{cylinderId}/check-stock")]
     public async Task<IActionResult> CheckStock(
         Guid cylinderId,
@@ -48,6 +52,7 @@ public class InventoryController : ControllerBase
         return Ok(result.Value);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Add([FromBody] AddUpdateInventory dto)
     {
@@ -58,6 +63,7 @@ public class InventoryController : ControllerBase
         return Ok(new { Message = "Inventory added successfully" });
     }
 
+    [Authorize]
     [HttpPatch("{cylinderId}/increase/{quantity}")]
     public async Task<IActionResult> IncreaseStock(Guid cylinderId, int quantity)
     {
@@ -69,7 +75,7 @@ public class InventoryController : ControllerBase
         return Ok(true);
     }
 
-
+    [Authorize]
     [HttpPatch("{cylinderId}/decrease/{quantity}")]
     public async Task<IActionResult> DecreaseStock(Guid cylinderId, int quantity)
     {
@@ -81,6 +87,7 @@ public class InventoryController : ControllerBase
         return Ok(true);
     }
 
+    [Authorize] 
     [HttpDelete("{cylinderId}")]
     public async Task<IActionResult> Delete(Guid cylinderId)
     {

@@ -1,5 +1,6 @@
 ﻿using CustomerService.Models.DTOs;
 using CustomerService.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerService.Controllers
@@ -16,6 +17,7 @@ namespace CustomerService.Controllers
         }
 
         // GET: api/customer
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAllCustomers()
         {
@@ -24,6 +26,7 @@ namespace CustomerService.Controllers
         }
 
         // GET: api/customer/{customerId}
+        [AllowAnonymous]
         [HttpGet("{customerId}", Name = "GetCustomerById")]
         public async Task<IActionResult> GetCustomerById(Guid customerId)
         {
@@ -33,6 +36,7 @@ namespace CustomerService.Controllers
         }
 
         // POST: api/customer
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddCustomer([FromBody] AddCustomerDto addDto)
         {
@@ -47,6 +51,7 @@ namespace CustomerService.Controllers
         }
 
         // PUT: api/customer/{customerId}
+        [Authorize]
         [HttpPut("{customerId}")]
         public async Task<IActionResult> UpdateCustomer(Guid customerId, [FromBody] UpdateCustomerDto updateDto)
         {
@@ -59,6 +64,7 @@ namespace CustomerService.Controllers
         }
 
         // DELETE: api/customer/{customerId}
+        [Authorize]
         [HttpDelete("{customerId}")]
         public async Task<IActionResult> DeleteCustomer(Guid customerId)
         {

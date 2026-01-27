@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Models.DTOs;
 using OrderService.Services.IServices;
@@ -7,6 +8,8 @@ namespace OrderService.Controller
 {
     [ApiController]
     [Route("api/[controller]")]
+
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly IOrdersService _ordersService;

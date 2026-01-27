@@ -1,7 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using CylinderService.Models.DTOs;
+﻿using CylinderService.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
 namespace CylinderService.Controllers
 {
@@ -17,6 +18,7 @@ namespace CylinderService.Controllers
             _cylinderService = cylinderService;
         }
 
+        [AllowAnonymous]
         [HttpGet("all")]
         public async Task<IActionResult> GetAllCylinders()
         {
@@ -24,6 +26,7 @@ namespace CylinderService.Controllers
             return Ok(cylinders);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetCylinderById(Guid id)
         {
@@ -32,6 +35,7 @@ namespace CylinderService.Controllers
             return Ok(cylinder);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddCylinder([FromBody] AddUpdateCylinderDto cylinderDto)
         {
@@ -41,6 +45,7 @@ namespace CylinderService.Controllers
             return CreatedAtAction(nameof(GetCylinderById), new { id = created.Id }, created);
         }
 
+        [Authorize]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> UpdateCylinder(Guid id, [FromBody] AddUpdateCylinderDto cylinderDto)
         {
@@ -52,6 +57,7 @@ namespace CylinderService.Controllers
             return Ok(updated);
         }
 
+        [Authorize]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteCylinder(Guid id)
         {
