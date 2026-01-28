@@ -49,7 +49,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
         ),
 
-        ClockSkew = TimeSpan.Zero // ?? important: no silent expiry grace
+        ClockSkew = TimeSpan.Zero
     };
 });
 
@@ -96,6 +96,22 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// ======================= ROLE SEEDING (ADD THIS) =======================
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    string[] roles = { "Admin", "Staff", "User" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}
 
 // ======================= PIPELINE =======================
 if (app.Environment.IsDevelopment())
