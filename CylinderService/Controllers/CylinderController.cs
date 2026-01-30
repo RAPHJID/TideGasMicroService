@@ -8,16 +8,17 @@ namespace CylinderService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] // default
     public class CylinderController : ControllerBase
     {
         private readonly CylinderService.Services.IServices.ICylinder _cylinderService;
 
-        // Use fully-qualified interface type here to match DI registration exactly.
         public CylinderController(CylinderService.Services.IServices.ICylinder cylinderService)
         {
             _cylinderService = cylinderService;
         }
 
+        // ================= READ (PUBLIC) =================
         [AllowAnonymous]
         [HttpGet("all")]
         public async Task<IActionResult> GetAllCylinders()
@@ -35,8 +36,9 @@ namespace CylinderService.Controllers
             return Ok(cylinder);
         }
 
-        [Authorize]
+        // ================= ADMIN ONLY =================
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddCylinder([FromBody] AddUpdateCylinderDto cylinderDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -45,8 +47,8 @@ namespace CylinderService.Controllers
             return CreatedAtAction(nameof(GetCylinderById), new { id = created.Id }, created);
         }
 
-        [Authorize]
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateCylinder(Guid id, [FromBody] AddUpdateCylinderDto cylinderDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -57,8 +59,8 @@ namespace CylinderService.Controllers
             return Ok(updated);
         }
 
-        [Authorize]
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCylinder(Guid id)
         {
             var ok = await _cylinderService.DeleteCylinderAsync(id);
