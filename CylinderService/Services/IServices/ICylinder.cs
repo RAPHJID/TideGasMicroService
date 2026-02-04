@@ -11,6 +11,7 @@ namespace CylinderService.Services.IServices
         Task<CylinderDto?> GetCylinderByIdAsync(Guid id);
         Task<CylinderDto> AddCylinderAsync(AddUpdateCylinderDto cylinderDto);
         Task<CylinderDto> UpdateCylinderAsync(Guid id, AddUpdateCylinderDto cylinderDto);
+        Task<CylinderDto?> UpdateDailySalesAsync(Guid cylinderId,string staffUserId,int quantitySoldToday);
         Task<bool> DeleteCylinderAsync(Guid id);
     }
 }

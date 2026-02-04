@@ -52,6 +52,22 @@ namespace CylinderService.Services
             return _mapper.Map<CylinderDto>(cylinder);
         }
 
+        public async Task<CylinderDto?> UpdateDailySalesAsync(Guid cylinderId,string staffUserId,int quantitySoldToday)
+        {
+            var cylinder = await _context.Cylinders.FindAsync(cylinderId);
+            if (cylinder == null)
+                return null;
+
+            cylinder.SoldToday = quantitySoldToday;
+            cylinder.LastUpdatedByStaffId = staffUserId;
+            cylinder.LastUpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<CylinderDto>(cylinder);
+        }
+
+
         public async Task<bool> DeleteCylinderAsync(Guid id)
         {
             var cylinder = await _context.Cylinders.FindAsync(id);
