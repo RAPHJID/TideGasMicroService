@@ -59,6 +59,28 @@ namespace CylinderService.Controllers
             return Ok(updated);
         }
 
+        [Authorize] 
+        [HttpPut("{id:guid}/daily-sales")]
+        public async Task<IActionResult> UpdateDailySales(Guid id,[FromBody] UpdateDailySalesDto dto)
+        {
+            var staffId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (staffId == null)
+                return Unauthorized();
+
+            var updated = await _cylinderService.UpdateDailySalesAsync(
+                id,
+                staffId,
+                dto.QuantitySoldToday
+            );
+
+            if (updated == null)
+                return NotFound();
+
+            return Ok(updated);
+        }
+
+
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCylinder(Guid id)
