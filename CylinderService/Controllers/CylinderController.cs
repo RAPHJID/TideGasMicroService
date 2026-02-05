@@ -59,9 +59,10 @@ namespace CylinderService.Controllers
             return Ok(updated);
         }
 
-        [Authorize] 
+      
         [HttpPut("{id:guid}/daily-sales")]
-        public async Task<IActionResult> UpdateDailySales(Guid id,[FromBody] UpdateDailySalesDto dto)
+        [Authorize(Roles = "Staff,Admin")]
+        public async Task<IActionResult> UpdateDailySales(Guid id, [FromBody] UpdateDailySalesDto dto)
         {
             var staffId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
@@ -79,6 +80,7 @@ namespace CylinderService.Controllers
 
             return Ok(updated);
         }
+
 
 
         [HttpDelete("{id:guid}")]
