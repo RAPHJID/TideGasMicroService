@@ -9,17 +9,18 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+// ======================= DATABASE =======================
 builder.Services.AddDbContext<CylinderDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
-
+// ======================= SERVICES =======================
 builder.Services.AddScoped<ICylinder, CylindersService>();
 
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// Swagger/OpenAPI support (Swashbuckle or NSwag)
+// ======================= SWAGGER + JWT =======================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -49,8 +50,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
-// Add CORS
+// ======================= CORS =======================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -61,6 +61,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+// ======================= JWT AUTH =======================
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -81,12 +82,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+
+// ======================= AUTHORIZATION POLICIES (ADD THIS) =======================
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+
+    options.AddPolicy("StaffOnly", policy =>
+        policy.RequireRole("Staff"));
+
+    options.AddPolicy("AdminOrStaff", policy =>
+        policy.RequireRole("Admin", "Staff"));
+});
+
+
+// ======================= PIPELINE =======================
 var app = builder.Build();
 
-// Enable CORS
 app.UseCors("AllowAll");
 
-// Enable Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
