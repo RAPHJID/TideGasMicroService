@@ -1,12 +1,12 @@
-﻿using InventoryService.Data;
+﻿using InventoryService.Common;
+using InventoryService.Data;
 using InventoryService.Models;
 using InventoryService.Models.DTOs;
-using InventoryService.Services.IService;
 using InventoryService.Services.HttpClients;
+using InventoryService.Services.IService;
 using Microsoft.EntityFrameworkCore;
-using InventoryService.Common;
 
-public class InventorysService : InventoryInterface
+public class InventorysService : IInventoryService
 {
     private readonly AppDbContext _context;
     private readonly ICylinderHttpClient _cylinderClient;
@@ -19,6 +19,8 @@ public class InventorysService : InventoryInterface
         _cylinderClient = cylinderClient;
     }
 
+    // ================= READ =================
+
     public async Task<IEnumerable<InventoryDto>> GetAllInventoriesAsync()
     {
         var inventories = await _context.Inventorys.ToListAsync();
@@ -28,60 +30,46 @@ public class InventorysService : InventoryInterface
         {
             var cylinderResult = await _cylinderClient.GetByIdAsync(inv.CylinderId);
 
-            if (!cylinderResult.IsSuccess || cylinderResult.Value == null)
-            {
-                // Cylinder service failed or cylinder missing
-                result.Add(new InventoryDto
-                {
-                    CylinderId = inv.CylinderId,
-                    QuantityAvailable = inv.QuantityAvailable,
-                    Size = "N/A",
-                    Brand = "Unknown",
-                    Status = "Unknown",
-                    Condition = "Unknown"
-                });
-
-                continue;
-            }
-
-            var cylinder = cylinderResult.Value;
-
-            result.Add(new InventoryDto
+            var dto = new InventoryDto
             {
                 CylinderId = inv.CylinderId,
-                QuantityAvailable = inv.QuantityAvailable,
-                Size = cylinder.Size ?? "N/A",
-                Brand = cylinder.Brand,
-                Status = cylinder.Status,
-                Condition = cylinder.Condition
-            });
+                QuantityAvailable = inv.QuantityAvailable
+            };
+
+            if (cylinderResult.IsSuccess && cylinderResult.Value != null)
+            {
+                var cylinder = cylinderResult.Value;
+                dto.Size = cylinder.Size ?? "N/A";
+                dto.Brand = cylinder.Brand;
+                dto.Status = cylinder.Status;
+                dto.Condition = cylinder.Condition;
+            }
+
+            result.Add(dto);
         }
 
         return result;
     }
 
-    public async Task<Result<InventoryDto>> GetInventoryByIdAsync(Guid cylinderId)
+    public async Task<Result<InventoryDto>> GetInventoryByCylinderIdAsync(Guid cylinderId)
     {
-        var item = await _context.Inventorys
+        var inventory = await _context.Inventorys
             .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
 
-        if (item == null)
+        if (inventory == null)
             return Result<InventoryDto>.Failure("Inventory not found.");
 
         var cylinderResult = await _cylinderClient.GetByIdAsync(cylinderId);
 
-        if (!cylinderResult.IsSuccess)
-            return Result<InventoryDto>.Failure(
-                cylinderResult.Error ?? "Failed to fetch cylinder details."
-            );
+        if (!cylinderResult.IsSuccess || cylinderResult.Value == null)
+            return Result<InventoryDto>.Failure("Failed to fetch cylinder details.");
 
-        var cylinder = cylinderResult.Value!;
+        var cylinder = cylinderResult.Value;
 
         var dto = new InventoryDto
         {
-            CylinderId = item.CylinderId,
-            QuantityAvailable = item.QuantityAvailable,
-
+            CylinderId = inventory.CylinderId,
+            QuantityAvailable = inventory.QuantityAvailable,
             Size = cylinder.Size ?? "N/A",
             Brand = cylinder.Brand,
             Status = cylinder.Status,
@@ -91,99 +79,77 @@ public class InventorysService : InventoryInterface
         return Result<InventoryDto>.Success(dto);
     }
 
+    // ================= WRITE =================
 
-
-
-
-
-    public async Task AddInventoryAsync(AddUpdateInventory dto)
+    public async Task<Result<bool>> CreateInventoryAsync(Guid cylinderId, decimal initialQuantity)
     {
-        var newItem = new Inventory
+        var exists = await _context.Inventorys
+            .AnyAsync(i => i.CylinderId == cylinderId);
+
+        if (exists)
+            return Result<bool>.Failure("Inventory already exists for this cylinder.");
+
+        var inventory = new Inventory
         {
-            CylinderId = dto.CylinderId,
-            QuantityAvailable = dto.QuantityAvailable
+            CylinderId = cylinderId,
+            QuantityAvailable = initialQuantity,
+            LastUpdated = DateTime.UtcNow
         };
 
-        _context.Inventorys.Add(newItem);
-        await _context.SaveChangesAsync();
-    }
-
-
-    public async Task<Result<bool>> IncreaseQuantityAsync(Guid cylinderId, int quantity)
-    {
-        if (quantity <= 0)
-            return Result<bool>.Failure("Quantity must be greater than zero.");
-
-        var item = await _context.Inventorys
-            .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
-
-        if (item == null)
-            return Result<bool>.Failure("Inventory not found.");
-
-        item.QuantityAvailable += quantity;
-        item.LastUpdated = DateTime.UtcNow;
-
+        _context.Inventorys.Add(inventory);
         await _context.SaveChangesAsync();
 
         return Result<bool>.Success(true);
     }
 
-
-
-    public async Task<Result<bool>> DecreaseQuantityAsync(Guid cylinderId, int quantity)
+    public async Task<Result<InventoryDto>> AdjustInventoryAsync(
+        Guid cylinderId,
+        decimal quantityChange,
+        string updatedByUserId)
     {
-        if (quantity <= 0)
-            return Result<bool>.Failure("Quantity must be greater than zero.");
-
-        var item = await _context.Inventorys
+        var inventory = await _context.Inventorys
             .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
 
-        if (item == null)
-            return Result<bool>.Failure("Inventory not found.");
+        if (inventory == null)
+            return Result<InventoryDto>.Failure("Inventory not found.");
 
-        if (item.QuantityAvailable < quantity)
-            return Result<bool>.Failure("Not enough stock available.");
+        if (inventory.QuantityAvailable + quantityChange < 0)
+            return Result<InventoryDto>.Failure("Insufficient stock.");
 
-        item.QuantityAvailable -= quantity;
-        item.LastUpdated = DateTime.UtcNow;
+        inventory.QuantityAvailable += quantityChange;
+        inventory.LastUpdated = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
-        return Result<bool>.Success(true);
+        return await GetInventoryByCylinderIdAsync(cylinderId);
     }
 
+    // ================= VALIDATION =================
 
+    public async Task<Result<bool>> CheckStockAsync(Guid cylinderId, decimal requiredQuantity)
+    {
+        var inventory = await _context.Inventorys
+            .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
 
+        if (inventory == null)
+            return Result<bool>.Failure("Inventory not found.");
+
+        return Result<bool>.Success(inventory.QuantityAvailable >= requiredQuantity);
+    }
+
+    // ================= ADMIN =================
 
     public async Task<Result<bool>> DeleteInventoryAsync(Guid cylinderId)
     {
-        var item = await _context.Inventorys
+        var inventory = await _context.Inventorys
             .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
 
-        if (item == null)
-            return Result<bool>.Failure("Inventory not found");
+        if (inventory == null)
+            return Result<bool>.Failure("Inventory not found.");
 
-        _context.Inventorys.Remove(item);
+        _context.Inventorys.Remove(inventory);
         await _context.SaveChangesAsync();
 
         return Result<bool>.Success(true);
     }
-
-
-    public async Task<Result<bool>> CheckStockAsync(Guid cylinderId, int quantity)
-    {
-
-        var item = await _context.Inventorys
-            .FirstOrDefaultAsync(i => i.CylinderId == cylinderId);
-
-        if (item == null)
-            return Result<bool>.Failure("Inventory not found.");
-
-        var enoughStock = item.QuantityAvailable >= quantity;
-
-        return Result<bool>.Success(enoughStock);
-    }
-
-
-
 }
