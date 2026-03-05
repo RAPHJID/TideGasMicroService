@@ -3,7 +3,7 @@ using InventoryService.Models.DTOs;
 
 namespace InventoryService.Services.IService
 {
-    public interface IInventoryService
+    public interface InventoryInterface
     {
         // ========= READ =========
         Task<IEnumerable<InventoryDto>> GetAllInventoriesAsync();

@@ -6,7 +6,7 @@ using InventoryService.Services.HttpClients;
 using InventoryService.Services.IService;
 using Microsoft.EntityFrameworkCore;
 
-public class InventorysService : IInventoryService
+public class InventorysService : InventoryInterface
 {
     private readonly AppDbContext _context;
     private readonly ICylinderHttpClient _cylinderClient;
