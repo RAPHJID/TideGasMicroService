@@ -32,8 +32,7 @@ namespace AuthService.Helpers
 
             // roles (future-proof)
             var roles = await _userManager.GetRolesAsync(user);
-            claims.AddRange(roles.Select(role =>
-                new Claim(ClaimTypes.Role, role)));
+            Console.WriteLine("User roles: " + string.Join(",", roles));
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)
