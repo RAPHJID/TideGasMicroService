@@ -73,21 +73,23 @@ namespace AuthService.Controllers
         }
 
         // ================= TEMP ASSIGN ROLE =================
+        
         [HttpPost("assign-role")]
-        public async Task<IActionResult> AssignRole(string email, string role)
+        public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto dto)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null)
                 return NotFound("User not found");
 
-            if (!await _roleManager.RoleExistsAsync(role))
+            if (!await _roleManager.RoleExistsAsync(dto.Role))
                 return BadRequest("Role does not exist");
 
-            var result = await _userManager.AddToRoleAsync(user, role);
+            var result = await _userManager.AddToRoleAsync(user, dto.Role);
+
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
-            return Ok($"Role {role} assigned to {email}");
+            return Ok($"Role {dto.Role} assigned to {dto.Email}");
         }
     }
 }
