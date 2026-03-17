@@ -1,4 +1,3 @@
-using AuthService.Data;
 using AuthService.Helpers;
 using AuthService.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,15 +17,9 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
 );
 
 // ======================= IDENTITY =======================
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequiredLength = 6;
-})
-.AddEntityFrameworkStores<AuthDbContext>()
-.AddDefaultTokenProviders();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<AuthDbContext>()
+    .AddDefaultTokenProviders();
 
 // ======================= JWT TOKEN GENERATOR =======================
 builder.Services.AddScoped<JwtTokenGenerator>();
