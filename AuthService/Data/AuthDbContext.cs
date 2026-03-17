@@ -1,13 +1,11 @@
 ﻿using AuthService.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
-namespace AuthService.Data
+public class AuthDbContext : IdentityDbContext<ApplicationUser, IdentityRole, string>
 {
-    public class AuthDbContext : IdentityDbContext<ApplicationUser>   
+    public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
     {
-        public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
-        {
-        }
     }
 }
