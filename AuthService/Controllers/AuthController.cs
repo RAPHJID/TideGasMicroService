@@ -50,7 +50,6 @@ namespace AuthService.Controllers
             return Ok(new { success = true, message = "User registered successfully" });
         }
 
-        // ================= LOGIN =================
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
@@ -62,13 +61,16 @@ namespace AuthService.Controllers
             if (!passwordValid)
                 return Unauthorized("Invalid credentials");
 
+            // 🔥 DEBUG HERE
+            var roles = await _userManager.GetRolesAsync(user);
+
             var token = await _tokenGenerator.GenerateToken(user);
 
             return Ok(new
             {
                 token,
-                expiresIn = 7200,
-                user = new { user.Id, user.Email, user.FullName }
+                roles, // 👈 ADD THIS
+                user = new { user.Id, user.Email }
             });
         }
 
@@ -102,5 +104,7 @@ namespace AuthService.Controllers
                 rolesAfter
             });
         }
+
+
     }
 }
