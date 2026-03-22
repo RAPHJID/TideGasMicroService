@@ -36,7 +36,7 @@ namespace CustomerService.Controllers
         }
 
         // POST: api/customer
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Policy = "AdminOrStaff")]
         [HttpPost]
         public async Task<IActionResult> AddCustomer([FromBody] AddCustomerDto addDto)
         {
@@ -50,7 +50,7 @@ namespace CustomerService.Controllers
         }
 
         // PUT: api/customer/{customerId}
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Policy = "AdminOrStaff")]
         [HttpPut("{customerId}")]
         public async Task<IActionResult> UpdateCustomer(Guid customerId, [FromBody] UpdateCustomerDto updateDto)
         {
@@ -63,7 +63,7 @@ namespace CustomerService.Controllers
         }
 
         // DELETE: api/customer/{customerId}
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Policy = "AdminOrStaff")]
         [HttpDelete("{customerId}")]
         public async Task<IActionResult> DeleteCustomer(Guid customerId)
         {
