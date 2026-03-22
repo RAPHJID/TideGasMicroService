@@ -83,7 +83,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ),
 
             // FIXES ROLE-BASED AUTH
-            RoleClaimType = "role" // or ClaimTypes.Role depending on your token
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
