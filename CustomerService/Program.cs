@@ -5,22 +5,23 @@ using CustomerService.Services.IServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+// DB
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Services
 builder.Services.AddScoped<ICustomer, CustomersService>();
 
-
-
+// Controllers + AutoMapper
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// Swagger/OpenAPI support (Swashbuckle or NSwag)
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -50,8 +51,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
-// Add CORS
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -62,6 +62,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+// JWT Config
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -76,17 +77,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
             ValidIssuer = jwtSettings["Issuer"],
             ValidAudience = jwtSettings["Audience"],
+
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSettings["Key"]!)
-            )
+            ),
+
+            // FIXES ROLE-BASED AUTH
+            RoleClaimType = "role" // or ClaimTypes.Role depending on your token
         };
     });
+
+// Authorization Policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+
+    options.AddPolicy("StaffOnly", policy =>
+        policy.RequireRole("Staff"));
+
+    options.AddPolicy("AdminOrStaff", policy =>
+        policy.RequireRole("Admin", "Staff"));
+});
+
 var app = builder.Build();
 
-// Enable CORS
+// Middleware
 app.UseCors("AllowAll");
 
-// Enable Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -95,8 +113,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+//  ORDER MATTERS
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
