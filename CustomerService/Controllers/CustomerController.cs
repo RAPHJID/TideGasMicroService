@@ -36,7 +36,7 @@ namespace CustomerService.Controllers
         }
 
         // POST: api/customer
-        [Authorize]
+        [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         public async Task<IActionResult> AddCustomer([FromBody] AddCustomerDto addDto)
         {
@@ -46,12 +46,11 @@ namespace CustomerService.Controllers
             if (createdCustomer == null)
                 return BadRequest("Failed to create customer.");
 
-            // Return 201 with Location header to GET endpoint
             return CreatedAtRoute("GetCustomerById", new { customerId = createdCustomer.Id }, createdCustomer);
         }
 
         // PUT: api/customer/{customerId}
-        [Authorize]
+        [Authorize(Roles = "Admin,Staff")]
         [HttpPut("{customerId}")]
         public async Task<IActionResult> UpdateCustomer(Guid customerId, [FromBody] UpdateCustomerDto updateDto)
         {
@@ -64,7 +63,7 @@ namespace CustomerService.Controllers
         }
 
         // DELETE: api/customer/{customerId}
-        [Authorize]
+        [Authorize(Roles = "Admin,Staff")]
         [HttpDelete("{customerId}")]
         public async Task<IActionResult> DeleteCustomer(Guid customerId)
         {
