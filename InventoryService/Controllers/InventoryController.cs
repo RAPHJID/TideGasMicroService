@@ -2,6 +2,7 @@
 using InventoryService.Services.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace InventoryService.Controllers
 {
@@ -16,7 +17,7 @@ namespace InventoryService.Controllers
             _inventoryService = inventoryService;
         }
 
-        // ========= READ =========
+        // ================= READ =================
 
         [AllowAnonymous]
         [HttpGet]
@@ -31,62 +32,38 @@ namespace InventoryService.Controllers
         public async Task<IActionResult> GetById(Guid cylinderId)
         {
             var result = await _inventoryService.GetInventoryByCylinderIdAsync(cylinderId);
-
-            if (!result.IsSuccess)
-                return NotFound(result.Error);
-
-            return Ok(result.Value);
+            return HandleResult(result);
         }
 
-        // ========= VALIDATION =========
+        // ================= VALIDATION =================
 
         [AllowAnonymous]
         [HttpGet("{cylinderId}/check-stock")]
         public async Task<IActionResult> CheckStock(Guid cylinderId, [FromQuery] decimal quantity)
         {
+            if (quantity <= 0)
+                return BadRequest("Quantity must be greater than zero.");
+
             var result = await _inventoryService.CheckStockAsync(cylinderId, quantity);
-
-            if (!result.IsSuccess)
-                return NotFound(result.Error);
-
-            return Ok(result.Value);
+            return HandleResult(result);
         }
 
-        // ========= CREATE =========
+        // ================= ADMIN ONLY =================
 
-        [Authorize]
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost("{cylinderId}")]
         public async Task<IActionResult> CreateInventory(Guid cylinderId, [FromQuery] decimal quantity)
         {
+            if (quantity < 0)
+                return BadRequest("Quantity cannot be negative.");
+
             var result = await _inventoryService.CreateInventoryAsync(cylinderId, quantity);
 
             if (!result.IsSuccess)
                 return BadRequest(result.Error);
 
-            return Ok("Inventory created");
+            return CreatedAtAction(nameof(GetById), new { cylinderId }, "Inventory created");
         }
-
-        // ========= ADJUST =========
-
-        [Authorize]
-        [HttpPatch("{cylinderId}/adjust")]
-        public async Task<IActionResult> AdjustInventory(Guid cylinderId, [FromQuery] decimal quantityChange)
-        {
-            var userId = User.FindFirst("sub")?.Value;
-
-            var result = await _inventoryService.AdjustInventoryAsync(
-                cylinderId,
-                quantityChange,
-                userId ?? "unknown"
-            );
-
-            if (!result.IsSuccess)
-                return BadRequest(result.Error);
-
-            return Ok(result.Value);
-        }
-
-        // ========= DELETE =========
 
         [Authorize(Policy = "AdminOnly")]
         [HttpDelete("{cylinderId}")]
@@ -98,6 +75,39 @@ namespace InventoryService.Controllers
                 return NotFound(result.Error);
 
             return NoContent();
+        }
+
+        // ================= ADMIN + STAFF =================
+
+        [Authorize(Policy = "AdminOrStaff")]
+        [HttpPatch("{cylinderId}/adjust")]
+        public async Task<IActionResult> AdjustInventory(Guid cylinderId, [FromQuery] decimal quantityChange)
+        {
+            if (quantityChange == 0)
+                return BadRequest("Quantity change cannot be zero.");
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "unknown";
+
+            var result = await _inventoryService.AdjustInventoryAsync(
+                cylinderId,
+                quantityChange,
+                userId
+            );
+
+            if (!result.IsSuccess)
+                return BadRequest(result.Error);
+
+            return Ok(result.Value);
+        }
+
+        // ================= HELPER =================
+
+        private IActionResult HandleResult<T>(Common.Result<T> result)
+        {
+            if (!result.IsSuccess)
+                return NotFound(result.Error);
+
+            return Ok(result.Value);
         }
     }
 }
