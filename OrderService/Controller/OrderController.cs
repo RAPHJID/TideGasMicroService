@@ -45,6 +45,8 @@ namespace OrderService.Controller
         [HttpPost]
         public async Task<ActionResult<OrderReadDTO>> CreateOrder([FromBody]OrderCreateDTO dto)
         {
+            var token = HttpContext.Request.Headers["Authorization"].ToString();
+
             var newOrder = await _ordersService.CreateOrderAsync(dto);
             return CreatedAtAction(nameof(GetOrderById), new { id = newOrder.Id }, newOrder);
         }
