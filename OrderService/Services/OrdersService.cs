@@ -85,10 +85,10 @@ namespace OrderService.Services
             return dto;
         }
 
-        public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto)
+        public async Task<OrderReadDTO> CreateOrderAsync(OrderCreateDTO dto, string token)
         {
             await using var dbTransaction = await _context.Database.BeginTransactionAsync();
-
+           
             try
             {
                 // 1. Check stock
