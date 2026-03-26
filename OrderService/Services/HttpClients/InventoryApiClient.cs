@@ -44,7 +44,7 @@ namespace OrderService.Services.HttpClients
             try
             {
                 var response = await _http.PatchAsync(
-                    $"/api/Inventory/{cylinderId}/decrease/{quantity}",
+                    $"/api/Inventory/{cylinderId}/adjust?quantityChange={-quantity}", 
                     null);
 
                 if (!response.IsSuccessStatusCode)
