@@ -104,7 +104,7 @@ namespace OrderService.Services
                 await _context.SaveChangesAsync();
 
                 // 3. Decrease stock
-                var decreaseResult = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity);
+                var decreaseResult = await _inventoryClient.DecreaseStockAsync(dto.CylinderId, dto.Quantity, token);
                 if (!decreaseResult.IsSuccess)
                     throw new Exception("Stock decrease failed.");
 

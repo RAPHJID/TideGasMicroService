@@ -39,21 +39,23 @@ namespace OrderService.Services.HttpClients
         }
 
 
-        public async Task<Result<bool>> DecreaseStockAsync(Guid cylinderId, int quantity)
+        public async Task<Result<bool>> DecreaseStockAsync(Guid cylinderId, int quantity, string token)
         {
             try
             {
+                _http.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Replace("Bearer ", ""));
+
                 var response = await _http.PatchAsync(
-                    $"/api/Inventory/{cylinderId}/adjust?quantityChange={-quantity}", 
+                    $"/api/Inventory/{cylinderId}/adjust?quantityChange={-quantity}",
                     null);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync();
                     return Result<bool>.Failure(
-                        string.IsNullOrWhiteSpace(error)
-                            ? "Failed to decrease stock."
-                            : error);
+                        $"Status: {response.StatusCode}, Error: {error}"
+                    );
                 }
 
                 return Result<bool>.Success(true);

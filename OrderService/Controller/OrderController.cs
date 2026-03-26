@@ -47,7 +47,8 @@ namespace OrderService.Controller
         {
             var token = HttpContext.Request.Headers["Authorization"].ToString();
 
-            var newOrder = await _ordersService.CreateOrderAsync(dto);
+            var newOrder = await _ordersService.CreateOrderAsync(dto, token);
+
             return CreatedAtAction(nameof(GetOrderById), new { id = newOrder.Id }, newOrder);
         }
 
