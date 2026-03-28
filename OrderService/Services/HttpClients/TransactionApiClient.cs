@@ -17,20 +17,35 @@ public class TransactionApiClient : ITransactionApiClient
     string token
 )
     {
-        var response = await _http.PostAsJsonAsync("api/Transaction", dto);
+        try
+        {
+           
+            _http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Bearer",
+                    token.Replace("Bearer ", "")
+                );
 
-        var body = await response.Content.ReadAsStringAsync();
+            var response = await _http.PostAsJsonAsync("api/Transaction", dto);
 
-        if (!response.IsSuccessStatusCode)
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return Result<TransactionReadDTO>.Failure(
+                    $"Transaction API error ({(int)response.StatusCode}): {body}");
+            }
+
+            var transaction = JsonSerializer.Deserialize<TransactionReadDTO>(
+                body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            return Result<TransactionReadDTO>.Success(transaction!);
+        }
+        catch (Exception ex)
         {
             return Result<TransactionReadDTO>.Failure(
-                $"Transaction API error ({(int)response.StatusCode}): {body}");
+                $"TransactionService error: {ex.Message}");
         }
-
-        var transaction = JsonSerializer.Deserialize<TransactionReadDTO>(
-            body,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-        return Result<TransactionReadDTO>.Success(transaction!);
     }
 }
