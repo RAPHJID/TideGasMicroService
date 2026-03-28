@@ -116,7 +116,7 @@ namespace OrderService.Services
                     Amount = order.TotalPrice
                 };
 
-                var transactionResult = await _transactionClient.CreateTransactionAsync(transactionDto);
+                var transactionResult = await _transactionClient.CreateTransactionAsync(transactionDto, token);
                 if (!transactionResult.IsSuccess)
                     throw new Exception($"Transaction creation failed: {transactionResult.Error}");
 

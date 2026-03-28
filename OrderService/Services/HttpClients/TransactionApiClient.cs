@@ -12,7 +12,10 @@ public class TransactionApiClient : ITransactionApiClient
         _http = http;
     }
 
-    public async Task<Result<TransactionReadDTO>> CreateTransactionAsync(CreateUpdateTransactionDTO dto)
+    public async Task<Result<TransactionReadDTO>> CreateTransactionAsync(
+    CreateUpdateTransactionDTO dto,
+    string token
+)
     {
         var response = await _http.PostAsJsonAsync("api/Transaction", dto);
 
