@@ -49,6 +49,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // ======================= AUTHORIZATION =======================
 builder.Services.AddAuthorization();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5174")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // ======================= CONTROLLERS =======================
 builder.Services.AddControllers();
 
@@ -117,7 +127,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("ReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 
