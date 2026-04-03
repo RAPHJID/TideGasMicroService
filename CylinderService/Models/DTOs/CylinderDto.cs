@@ -4,6 +4,7 @@
     {
         public Guid Id { get; set; }
         public string? Size { get; set; }
+        public string? ImageUrl { get; set; }
 
         public string Brand { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
