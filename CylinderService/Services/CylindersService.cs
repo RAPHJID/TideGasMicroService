@@ -5,6 +5,7 @@ using AutoMapper;
 using CylinderService.Data;
 using CylinderService.Models;
 using CylinderService.Models.DTOs;
+using CylinderService.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 
 namespace CylinderService.Services
@@ -76,6 +77,15 @@ namespace CylinderService.Services
             _context.Cylinders.Remove(cylinder);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<CylinderDto> UpdateImageUrlAsync(Guid id, string imageUrl)
+        {
+            var cylinder = await _context.Cylinders.FindAsync(id);
+            if (cylinder == null) return null;
+            cylinder.ImageUrl = imageUrl;
+            await _context.SaveChangesAsync();
+            return _mapper.Map<CylinderDto>(cylinder);
         }
     }
 }

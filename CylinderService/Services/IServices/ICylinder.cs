@@ -10,6 +10,7 @@ namespace CylinderService.Services.IServices
         Task<IEnumerable<CylinderDto>> GetAllCylindersAsync();
         Task<CylinderDto?> GetCylinderByIdAsync(Guid id);
         Task<CylinderDto> AddCylinderAsync(AddUpdateCylinderDto cylinderDto);
+        Task<CylinderDto> UpdateImageUrlAsync(Guid id, string imageUrl);
         Task<CylinderDto> UpdateCylinderAsync(Guid id, AddUpdateCylinderDto cylinderDto);
         Task<CylinderDto?> UpdateDailySalesAsync(Guid cylinderId,string staffUserId,int quantitySoldToday);
         Task<bool> DeleteCylinderAsync(Guid id);
