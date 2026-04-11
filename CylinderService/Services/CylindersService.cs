@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CylinderService.Services
 {
-    // Note: implement the fully-qualified interface to avoid namespace mix-ups.
     public class CylindersService : CylinderService.Services.IServices.ICylinder
     {
         private readonly CylinderDbContext _context;
@@ -79,13 +78,6 @@ namespace CylinderService.Services
             return true;
         }
 
-        public async Task<CylinderDto> UpdateImageUrlAsync(Guid id, string imageUrl)
-        {
-            var cylinder = await _context.Cylinders.FindAsync(id);
-            if (cylinder == null) return null;
-            cylinder.ImageUrl = imageUrl;
-            await _context.SaveChangesAsync();
-            return _mapper.Map<CylinderDto>(cylinder);
-        }
+        
     }
 }

@@ -63,33 +63,6 @@ public class CylinderController : ControllerBase
     // ===== ADMIN ONLY =====
 
     [Authorize(Policy = "AdminOnly")]
-    [HttpPost("{id:guid}/upload-image")]
-    public async Task<IActionResult> UploadImage(Guid id, IFormFile file)
-    {
-        if (file == null || file.Length == 0)
-            return BadRequest(new { message = "No file provided" });
-
-        var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp" };
-        if (!allowedTypes.Contains(file.ContentType))
-            return BadRequest(new { message = "Only JPG, PNG and WEBP are allowed" });
-
-        // save to wwwroot/images/cylinders/
-        var folder = Path.Combine("wwwroot", "images", "cylinders");
-        Directory.CreateDirectory(folder);
-
-        var fileName = $"{id}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(folder, fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
-            await file.CopyToAsync(stream);
-
-        var imageUrl = $"/images/cylinders/{fileName}";
-        var result = await _cylinderService.UpdateImageUrlAsync(id, imageUrl);
-
-        return result == null ? NotFound() : Ok(new { imageUrl });
-    }
-
-    [Authorize(Policy = "AdminOnly")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteCylinder(Guid id)
     {

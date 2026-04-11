@@ -9,8 +9,6 @@
         public string Status { get; set; } = string.Empty;
         public string Condition { get; set; } = string.Empty;
 
-        public string? ImageUrl { get; set; }
-
         public DateTime LastRefilled { get; set; }
 
         //INVENTORY
