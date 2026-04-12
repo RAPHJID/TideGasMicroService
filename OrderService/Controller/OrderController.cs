@@ -43,16 +43,21 @@ namespace OrderService.Controller
 
         // POST: api/Order
         [HttpPost]
-        public async Task<ActionResult<OrderReadDTO>> CreateOrder([FromBody]OrderCreateDTO dto)
+        public async Task<ActionResult<OrderReadDTO>> CreateOrder([FromBody] OrderCreateDTO dto)
         {
-            var token = HttpContext.Request.Headers["Authorization"].ToString();
-
-            var newOrder = await _ordersService.CreateOrderAsync(dto, token);
-
-            return CreatedAtAction(nameof(GetOrderById), new { id = newOrder.Id }, newOrder);
+            try
+            {
+                var token = HttpContext.Request.Headers["Authorization"].ToString();
+                var newOrder = await _ordersService.CreateOrderAsync(dto, token);
+                return CreatedAtAction(nameof(GetOrderById), new { id = newOrder.Id }, newOrder);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-       
+
         // PATCH: api/Order/{id}/status
         [HttpPatch("{id}/status")]
         public async Task<ActionResult> UpdateStatus(Guid id, [FromBody] string status)
